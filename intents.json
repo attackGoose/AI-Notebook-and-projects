@@ -9,15 +9,40 @@
     {"tag": "name",
     "patterns": ["what's your name"],
     "responses": ["why don't you tell me yours first"]
-        }
+        },
 
     {"tag": "smug",
-    "patterns": [],
-    "repsonses" []
-        }
+    "patterns": ["guess what", "hehehe"],
+    "repsonses": []
+        },
 
     {"tag": "happy",
     "patterns": [],
-    "responses" []
+    "responses": []
+        },
+
+    {"tag": "whoopss",
+    "patterns": [],
+    "responces": []
+        },
+    
+    {"tag": "oh no",
+    "patterns": [],
+    "responses": []
+        },
+
+    {"tag": "knowledge",
+    "patterns": ["history", "fun facts", "The Great Emu War"],
+    "responses": []
+        },
+    
+    {"tag": "affectionate",
+    "patterns": [],
+    "responses": ["replusive as always", "sure"]
+        },
+    
+    {"tag": "mischievious",
+    "patterns": [],
+    "responses": ["My ai is broken, please fix it before continuing"]
         }
 ]}
