@@ -43,6 +43,11 @@
     
     {"tag": "mischievious",
     "patterns": [],
-    "responses": ["My ai is broken, please fix it before continuing"]
+    "responses": ["My ai is broken, please fix it before continuing", "repeatPhraseGiven()"]
+        },
+    
+    {"tag": "sarcastic",
+    "patterns": [],
+    "responses": ["repeatPhraseGiven(case=random)"]
         }
 ]}
