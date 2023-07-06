@@ -7,7 +7,17 @@
         },  
     
     {"tag": "name",
+    "patterns": ["what's your name"],
+    "responses": ["why don't you tell me yours first"]
+        }
+
+    {"tag": "smug",
     "patterns": [],
-    "responses": []
+    "repsonses" []
+        }
+
+    {"tag": "happy",
+    "patterns": [],
+    "responses" []
         }
 ]}
