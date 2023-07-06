@@ -1,0 +1,13 @@
+
+
+{"intents": [
+    {"tag": "greetings",
+    "patterns": [],
+    "responses": []
+        },  
+    
+    {"tag": "name",
+    "patterns": [],
+    "responses": []
+        }
+]}
