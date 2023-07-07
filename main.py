@@ -1,6 +1,6 @@
 import tensorflow
 import numpy
-import numpy
+import numpy as np
 import random
 import json
 import nltk
@@ -42,5 +42,25 @@ lables = sorted(lables)
 training = []
 output = []
 
-out_empty = [0 for _ in range(len(intent["tag"]))]
+#turns it into a bag of words
+out_empty = [0 for _ in range(len(lables))]
 
+for index, doc in enumerate(docs_patterns):
+    bag = []
+
+    wrds = [stemmer.stem(w) for w in doc]
+
+    for w in words:
+        if w in wrds:
+            bag.append(1)
+        else:
+            bag.append(0)
+
+    ourput_row = out_empty[:]
+    ourput_row[lables.index[docs_tags[index]]] = 1
+
+    training.append(bag)
+    output.append(ourput_row)
+
+training = np.array(training)
+ourput = np.array(output)
