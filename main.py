@@ -81,7 +81,7 @@ except:
 #creates the neuro network and trains it/loads its training
 tensorflow.reset_default_graph()
 
-#replace this with keras's neuro network and training
+#NOTE:replace this with keras's neuro network and training
 #net = tflearn.input_data(shape=[None, len(training[0])])
 #net = tflearn.fully_connected(net, 8) #first hidden layer that has 8 nuerons
 #net = tflearn.fully_connected(net, 8)
