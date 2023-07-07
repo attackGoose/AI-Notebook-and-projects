@@ -49,5 +49,15 @@
     {"tag": "sarcastic",
     "patterns": [],
     "responses": ["repeatPhraseGiven(case=random)"]
+        },
+    
+    {"tag": "normal",
+    "patterns": [],
+    "responses": [""]
+        },
+
+    {"tag": "gaslight",
+    "patterns": [],
+    "responses": [""]
         }
 ]}
