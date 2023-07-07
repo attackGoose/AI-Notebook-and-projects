@@ -2,8 +2,8 @@
 
 {"intents": [
     {"tag": "greetings",
-    "patterns": [],
-    "responses": []
+    "patterns": ["hello", "hey there", "how are you"],
+    "responses": ["why hello there", "heloooo", "heyo", "whadaya want"]
         },  
     
     {"tag": "name",
@@ -13,7 +13,7 @@
 
     {"tag": "smug",
     "patterns": ["guess what", "hehehe"],
-    "repsonses": []
+    "repsonses": ["Oh no he's up to something again", "what is it?"]
         },
 
     {"tag": "happy",
@@ -27,8 +27,8 @@
         },
     
     {"tag": "oh no",
-    "patterns": [],
-    "responses": []
+    "patterns": ["oh no"],
+    "responses": ["what did u break"]
         },
 
     {"tag": "knowledge",
