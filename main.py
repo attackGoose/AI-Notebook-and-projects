@@ -1,80 +1,124 @@
 import tensorflow
+from tensorflow import keras
 import numpy
 import numpy as np
 import random
-import tflearn
 import json
 import nltk
+import pickle
 from nltk.stem.lancaster import LancasterStemmer
 
+#https://www.tensorflow.org/guide/keras/making_new_layers_and_models_via_subclassing
+#https://www.geeksforgeeks.org/deploy-a-chatbot-using-tensorflow-in-python/
 #using this series to learn: https://www.youtube.com/watch?v=wypVcNIH6D4&list=PLzMcBGfZo4-ndH9FoC4YWHGXG5RZekt-Q&index=1&t=0s
 #note, you have to learn the intent of a message, hence "intents" is meant to give repsonses to what vibe the program believes the conversation is giving off, refer to tutorial
 #https://www.techwithtim.net/tutorials/ai-chatbot/chat-bot-part-2
 
-stemmer = LancasterStemmer()
-words = [] #
-lables = []
-docs_patterns = []
-docs_tags = []
+
 
 
 with open("intents.json") as file:
     data = json.load(file)
 
-for intent in data["intents"]:
-    for pattern in intent["patterns"]: #stems the words/takes the root word in the words in the patterns
-        wrds = nltk.word_tokenize(pattern) #returns a list of the tokenized words into a list
-        words.extend(wrds)
-        docs_patterns.append(wrds)
-        docs_tags.append(intent["tag"]) #important for classifying the pattern to a specific name of intent
+try:
+    with open("data.pickle", "rb") as f:
+        words, lables, training, output = pickle.load(f)
+except:
+    stemmer = LancasterStemmer()
+    words = [] #
+    lables = []
+    docs_patterns = []
+    docs_tags = []
 
-    if intent["tag"] not in lables:
-        lables.append(intent["tag"])
+    for intent in data["intents"]:
+        for pattern in intent["patterns"]: #stems the words/takes the root word in the words in the patterns
+            wrds = nltk.word_tokenize(pattern) #returns a list of the tokenized words into a list
+            words.extend(wrds)
+            docs_patterns.append(wrds)
+            docs_tags.append(intent["tag"]) #important for classifying the pattern to a specific name of intent
 
-#removes any duplicates in the words list
-words = [stemmer.stem(w.lower()) for w in words if w != "?"] 
-words = sorted(list(set(words)))
+        if intent["tag"] not in lables:
+            lables.append(intent["tag"])
+
+    #removes any duplicates in the words list
+    words = [stemmer.stem(w.lower()) for w in words if w != "?"] 
+    words = sorted(list(set(words)))
 
 
-lables = sorted(lables)
+    lables = sorted(lables)
 
-#since neuro networks only understand numbers, this converts the lists into "bags of words" or the amount of times a word appears in a sentence 
+    #since neuro networks only understand numbers, this converts the lists into "bags of words" or the amount of times a word appears in a sentence 
 
-training = []
-output = []
+    training = []
+    output = []
 
-#turns it into a bag of words
-out_empty = [0 for _ in range(len(lables))]
+    #turns it into a bag of words
+    out_empty = [0 for _ in range(len(lables))]
 
-for index, doc in enumerate(docs_patterns):
-    bag = []
+    for index, doc in enumerate(docs_patterns):
+        bag = []
 
-    wrds = [stemmer.stem(w) for w in doc]
+        wrds = [stemmer.stem(w) for w in doc]
 
-    for w in words:
-        if w in wrds:
-            bag.append(1)
-        else:
-            bag.append(0)
+        for w in words:
+            if w in wrds:
+                bag.append(1)
+            else:
+                bag.append(0)
 
-    ourput_row = out_empty[:]
-    ourput_row[lables.index(docs_tags[index])] = 1
+        ourput_row = out_empty[:]
+        ourput_row[lables.index(docs_tags[index])] = 1
 
-    training.append(bag)
-    output.append(ourput_row)
+        training.append(bag)
+        output.append(ourput_row)
 
-training = np.array(training)
-ourput = np.array(output)
+    training = np.array(training)
+    ourput = np.array(output)
 
+    with open("data.pickle", "wb") as f:
+        pickle.dump((words, lables, training, output), f)
+
+#creates the neuro network and trains it/loads its training
 tensorflow.reset_default_graph()
 
-net = tflearn.input_data(shape=[None, len(training[0])])
-net = tflearn.fully_connected(net, 8) #first hidden layer that has 8 nuerons
-net = tflearn.fully_connected(net, 8)
-net = tflearn.fully_connected(net, len(output[0]), activation="softmax") #gives us the probability of each neuron in this layer and that will be the output layer
-net = tflearn.regression(net)
+#replace this with keras's neuro network and training
+#net = tflearn.input_data(shape=[None, len(training[0])])
+#net = tflearn.fully_connected(net, 8) #first hidden layer that has 8 nuerons
+#net = tflearn.fully_connected(net, 8)
+#net = tflearn.fully_connected(net, len(output[0]), activation="softmax") #gives us the probability of each neuron in this layer and that will be the output layer
+#net = tflearn.regression(net)
 
-model = tflearn.DNN(net)
+#model = tflearn.DNN(net)
 
-model.fit(training, output, n_epoch=1000, batch_size=8, show_metric=True) #epoch change the number to test it
-model.save("model.tflearn")
+try:
+    model.load("model.tflearn")
+except:
+    model.fit(training, output, n_epoch=1000, batch_size=8, show_metric=True) #epoch change the number to test it
+    model.save("model.tflearn")
+
+
+def bag_of_words(s, words):
+    bag = [0 for _ in range(len(words))]
+
+    s_words = nltk.tokenize(s)
+    s_words = [stemmer.stem(words.lower()) for word in s_words]
+
+    for se in s_words:
+        for index, wrd in enumerate(words):
+            if w == se:
+                bag[index] = 1
+    
+    return numpy.array(bag)
+
+def chat():
+    print("starting chat (type quit to stop)")
+    while True:
+        text = input("You: ")
+        if text.lower() == "quit":
+            break
+
+        results = model.predict([bag_of_words(text, words)])
+
+        print(results)
+
+chat()
