@@ -12,7 +12,10 @@ class Linear(keras.layers.Layer):
     def call(self, inputs):
         return tf.matmul(inputs, self.w) + self.b
     
-x = tf.ones((2, 2))
-linear_layer = Linear(4, 2)
-y = linear_layer(x)
-print(y)
+
+if __name__ == "__main__":
+    #test materials
+    x = tf.ones((2, 2))
+    linear_layer = Linear(4, 2)
+    y = linear_layer(x)
+    print(y)

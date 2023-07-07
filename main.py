@@ -116,15 +116,28 @@ def bag_of_words(s, words):
     
     return numpy.array(bag)
 
-def chat():
+if __name__ == "__main__":
     print("starting chat (type quit to stop)")
     while True:
         text = input("You: ")
         if text.lower() == "quit":
             break
 
-        results = model.predict([bag_of_words(text, words)])
+        results = model.predict([bag_of_words(text, words)]) #this shows the accuracy/probability of what the bot thinks is the right response
+        results_index = numpy.argmax(results) #chooses the greatest possibility of the correct reply
+        tag = lables[results_index]
 
-        print(results)
 
-chat()
+        if results[results_index] > 0.7: #if the response is above a certain probability it'll print it, otherwise it'll return a confused statement
+            for tg in data["intents"]:
+                if tg["tag"] == tag:
+                    responses = tg["responces"]
+        else:
+            for tg in data["intents"]:
+                if tg["tag"] == "confused":
+                    responses = tg["responces"]
+        
+        print(random.choice(responses))
+
+            
+

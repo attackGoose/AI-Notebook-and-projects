@@ -59,5 +59,10 @@
     {"tag": "gaslight",
     "patterns": [],
     "responses": [""]
+        },
+
+    {"tag": "confused",
+    "patterns": [],
+    "responses": ["what are you trying to say?", "I don't understand?", "mind repeating that again?"]
         }
 ]}
