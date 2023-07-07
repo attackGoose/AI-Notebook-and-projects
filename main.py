@@ -91,10 +91,12 @@ tensorflow.reset_default_graph()
 #model = tflearn.DNN(net)
 
 try:
-    model.load("model.tflearn")
+    #model.load("model.tflearn")
+    pass
 except:
-    model.fit(training, output, n_epoch=1000, batch_size=8, show_metric=True) #epoch change the number to test it
-    model.save("model.tflearn")
+    #model.fit(training, output, n_epoch=1000, batch_size=8, show_metric=True) #epoch change the number to test it
+    #model.save("model.tflearn")
+    pass
 
 
 def bag_of_words(s, words):
