@@ -1,5 +1,6 @@
 import tensorflow as tf
 from tensorflow import keras
+from keras import layers
 import numpy
 import numpy as np
 import random
@@ -16,7 +17,7 @@ from nltk.stem.lancaster import LancasterStemmer
 
 
 
-
+#if there is a previously trained model, it uses that, otherwise it trains a model to use 
 with open("intents.json") as file:
     data = json.load(file)
 
@@ -73,7 +74,7 @@ except:
         output.append(ourput_row)
 
     training = np.array(training)
-    ourput = np.array(output)
+    output = np.array(output)
 
     with open("data.pickle", "wb") as f:
         pickle.dump((words, lables, training, output), f)
@@ -82,8 +83,9 @@ except:
 tf.reset_default_graph()
 
 #NOTE:replace this with keras's neuro network and training
+model = keras.Sequential()
 
-
+model.add(layers.Embedding(input_dim=1000, output_dim=64))
 
 #net = tflearn.input_data(shape=[None, len(training[0])])
 #net = tflearn.fully_connected(net, 8) #first hidden layer that has 8 nuerons
@@ -97,9 +99,7 @@ try:
     #model.load("model.tflearn")
     pass
 except:
-    #model.fit(training, output, n_epoch=1000, batch_size=8, show_metric=True) #epoch change the number to test it
-    #model.save("model.tflearn")
-    pass
+    print("did you train your model in the training file? if not, build and train a model in there, then run it in here")
 
 
 def bag_of_words(s, words):
@@ -114,6 +114,7 @@ def bag_of_words(s, words):
                 bag[index] = 1
     
     return numpy.array(bag)
+
 
 if __name__ == "__main__":
     print("starting chat (type quit to stop)")
@@ -130,11 +131,11 @@ if __name__ == "__main__":
         if results[results_index] > 0.7: #if the response is above a certain probability it'll print it, otherwise it'll return a confused statement
             for tg in data["intents"]:
                 if tg["tag"] == tag:
-                    responses = tg["responces"]
+                    responses = tg["responses"]
         else:
             for tg in data["intents"]:
                 if tg["tag"] == "confused":
-                    responses = tg["responces"]
+                    responses = tg["responses"]
         
         print(random.choice(responses))
 

@@ -1,7 +1,10 @@
+#make and train model in this file
+
 import numpy as np
 import tensorflow as tf
 from tensorflow import keras
 from keras import layers
+import os
 
 #applying a RNN (recurrent Neuro network)
 
@@ -52,7 +55,13 @@ model.fit(
     x_train, y_train, validation_data=(x_test, y_test), batch_size=batch_size, epochs=1
 )
 
+
+
+
+
 #https://www.tensorflow.org/guide/keras/working_with_rnns
+
+
 
 
 #class Linear(keras.layers.Layer):
