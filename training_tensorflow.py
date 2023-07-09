@@ -54,6 +54,7 @@ model.compile(
 model.fit(
     x_train, y_train, validation_data=(x_test, y_test), batch_size=batch_size, epochs=1
 )
+
 print(model)
 
 
