@@ -1,5 +1,5 @@
 #make and train model in this file using tensorflow, TODO: try to learn more about this
-
+#idk what i'm doing here, I'm learning more about this right now
 import numpy as np
 import tensorflow as tf
 from tensorflow import keras
