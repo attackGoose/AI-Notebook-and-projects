@@ -1,4 +1,4 @@
-#make and train model in this file using tensorflow
+#make and train model in this file using tensorflow, TODO: try to learn more about this
 
 import numpy as np
 import tensorflow as tf
