@@ -169,4 +169,24 @@ x_original = torch.rand(size=(224, 224, 3)) #height, width, color_channels (RGB)
 x_permuted = x_original.permute(2, 0, 1) #rearranges the color channel into the 0th index, and shifts the rest back by 1, shifts axis 0 -> 1, 1-> 2, 2-> 0
 print(f"original shape: {x_original.shape}\npermuted shape: {x_permuted.shape}")
 
-#time stamp = 3:23:27
+
+##Indexing / selecting data from tensors
+
+new_tensor = torch.arange(1, 10).reshape(1, 3, 3) 
+print(new_tensor)
+
+print(new_tensor[0][0][0], new_tensor[0, 0, 0]) #these are both relatively the same, this shows 2 ways to refer to elements, one returns a list, the other returns a value
+
+print(new_tensor[:, :, 1]) #the ":" would select all of a target dimension, this would get the last item of the 2nd dimensions 
+
+#exercise: get all values of the 0th dimension but only 1 index value ofthe 1st and 2nd dimensions:
+print(new_tensor[:, 1, 1])
+
+#index of 0 of the 0th dimension and 1st dimension and all of the values of the 2nd dimension
+print(new_tensor[0, 0, :])
+
+#get the index to return 9, and index to return 3, 6, 9
+print(new_tensor[:, :, 2], new_tensor[0, 2, 2])
+
+
+#time stamp: 3:33:00: combining pytorch with numpy
