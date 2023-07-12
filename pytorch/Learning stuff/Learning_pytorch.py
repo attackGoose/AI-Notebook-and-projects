@@ -189,4 +189,92 @@ print(new_tensor[0, 0, :])
 print(new_tensor[:, :, 2], new_tensor[0, 2, 2])
 
 
-#time stamp: 3:33:00: combining pytorch with numpy
+##using Numpy with Pytorch
+
+#converting data in numpy -> tensor
+array = np.arange(1.0, 10.0)
+numpy_to_tensor = torch.from_numpy(array).type(torch.float32)
+print(array, numpy_to_tensor) #notice that the default datatype for the numpy array to tensor is a float64, so you have to manually specify it if needed
+
+array += 1
+print(array, numpy_to_tensor)
+#also note that if you change the numpy array, it will not change the value of the tensor converted from it (they dont' share memory)
+
+
+#converting data from tensor -> numpy
+tensorN = torch.ones(7)
+numpy_tensor = tensorN.numpy()
+print(tensorN, numpy_tensor) # the default datatype of a tensor is float 32
+
+tensorN += 1
+print(tensorN, numpy_to_tensor)
+#also note that if you change the numpy array, it will not change the value of the tensor converted from it
+
+
+##reproducbility (trying to take the random out of random/guided values/basically like gradient descent?)
+
+# 1st concept to reduce the randomness is a random seed, the random seed "flavors" the randomness: examples below
+
+# how random tensors usually work: they usually just produce random numbers that have little to nothing to do wtih each other
+random_tensor_A = torch.rand(3, 4)
+random_tensor_B = torch.rand(3, 4)
+
+print(f"{random_tensor_A}\n{random_tensor_B}")
+print(random_tensor_A == random_tensor_B)
+
+# setting the random seed
+RANDOM_SEED = 42
+torch.manual_seed(RANDOM_SEED)
+random_tensor_C = torch.rand(3, 4)
+
+torch.manual_seed(RANDOM_SEED)
+random_tensor_D = torch.rand(3, 4)
+
+print(f"{random_tensor_C}\n{random_tensor_D}")
+print(random_tensor_C == random_tensor_D)
+#as you can see here, the torch.manual_seed() only works for one tensor at a time, so you have to set it again for another cell if you want it in another cell
+
+#link for further information on reproducibility and random number generation: https://pytorch.org/docs/stable/notes/randomness.html https://en.wikipedia.org/wiki/Random_seed
+
+
+# Running tensors on the GPU (and making faster computations since gpus are fast with numbers thanks to CUDA + NVIDIA hardware + pytorch working behind the scenes) 
+
+# 1. Easiest way: use google colab for a free GPU (i'm not cus I'm dum), but you have to use a browser
+# 2. Use your own gpu, which requires setup and purchasing 
+# 3. Cloud computing: GCP, AWS, Azure, and other services allow you to rent computers on the cloud and access their gpu
+
+# for 2 and 3, pytorch and CUDA drivers require a bit of setup if you get a gpu, so refer to pytorch documentation for the setup 
+
+#check for gpu access with pytorch
+
+print(torch.cuda.is_available())
+
+#setup device agnostic code:
+##since pytorch is capable of running on both the gpu and cpu, its best practice to setup device agnostic code: https://pytorch.org/docs/stable/notes/cuda.html#best-practices
+device = "cuda" if torch.cuda.is_available() else "cpu"
+
+#counts the number of gpu devices:
+print(torch.cuda.device_count())
+
+
+## Putting tensors (and models) on the GPU (because its faster with computations)
+
+#create a tensor and change the device (if available)
+GPU_tensor = torch.tensor([1, 2, 3])
+
+tensor_on_gpu = GPU_tensor.to(device) #since i have no gpu, mine's will only be on my cpu, also the .to() method can also be used for moving models and tensors elsewhere
+print(tensor, tensor.device)
+
+#if tensor is on the gpu, you can't convert it to numpy, so you have to change it to the cpu first (device type errors, one ofthe most common type of errors)
+tensor_back_on_cpu = tensor_on_gpu.cpu().numpy() #the tensor_on_gpu should remain unchanged on the gpu
+print(tensor_back_on_cpu)
+
+#this only applies to one gpu, once you have more gpu's, refer to the pytorch documentation
+
+
+### End of Pytorch Fundamentals, go to learnpytorch.io/00_pytorch_fundimentals/ you should find some exercises if I'm interested in practicing more on it
+
+
+
+### Introduction to Pytorch Workflow
+
