@@ -271,10 +271,7 @@ print(tensor_back_on_cpu)
 
 #this only applies to one gpu, once you have more gpu's, refer to the pytorch documentation
 
-
 ### End of Pytorch Fundamentals, go to learnpytorch.io/00_pytorch_fundimentals/ you should find some exercises if I'm interested in practicing more on it
 
 
-
-### Introduction to Pytorch Workflow
 
