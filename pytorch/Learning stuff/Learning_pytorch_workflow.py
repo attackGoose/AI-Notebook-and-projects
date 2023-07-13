@@ -214,14 +214,19 @@ steps:
 """
 
 #an epoch is one loop through the data, a hyper parameter because we set it ourselves
-epochs = 100
+epochs = 200
+
+#track different values and tracks model progress, used to plot model progress later on, useful for comparing with future experiments
+epoch_count = []
+loss_values = []
+test_loss_values = []
 
 print(model.state_dict())
 
-#set the model to training mode, training mode sets all paramaters that requires gradients to require gradients, requires_grad=True
-model.train()
-
 for epoch in range(epochs):
+
+    #set the model to training mode, training mode sets all paramaters that requires gradients to require gradients, requires_grad=True
+    model.train()
 
     #forward pass:
     y_pred = model(X_train)
@@ -240,19 +245,43 @@ for epoch in range(epochs):
     #in torch autograd
     optimizer.step() #by default how the optimizer changes will accumulate through the loop, so we have to zero them above (shown in step 3) for the next iteration of the loop
 
-    ### testing
-    model.eval() #this turns off gradient tracking
 
-    print(model.state_dict())
+    ### testing
+    model.eval() #evaluation mode, turns off training, starts testing
+    #this turns off different stuff in the model that's not used for testing (essentially its like dropout/batch norm layers, read docs for more info)
+
+    with torch.inference_mode(): #turns off gradient tracking for inference and a couple of other stuff to make testing faster. torch.no_grad() does the same but slower
+        #1. foward pass:
+        test_pred = model(X_test)
+
+        #2. loss calculation:
+        test_loss = loss_fn(test_pred, y_test) #y_test is the test labels, calculates the testing loss value
+
+        if epoch % 10 == 0:
+            epoch_count.append(epoch)
+            loss_values.append(loss)
+            test_loss_values.append(test_loss)
+            print(f"Epoch: {epoch} | Loss: {loss} | Test loss: {test_loss}")
+            print(model.state_dict())
+
+#matplotlib works with numpy, not working with the gpu because i don't have one so i can skip the "".cpu()"".numpy() part and just go right to .numpy
+plt.plot(torch.tensor(epoch_count).numpy(), torch.tensor(loss_values).numpy(), label="Train loss") 
+plt.plot(torch.tensor(epoch_count).numpy(), torch.tensor(test_loss_values).numpy(), label="Test loss")
+plt.title("Training and test loss curves")
+plt.ylabel("Loss")
+plt.xlabel("Epoch")
+plt.show()
 
 #there is also learning rate scheduling, which is basically starting with big steps in the learning rate, then slowly lowering it,like reacing for the coin at the backofthe couch
 #the lowest point is the convergence, its the point where the loss function is at its minimum
 
-#the steps in the loop can be turned into a function
+#the steps in the loop can be turned into a function, do later, first build intuition for it
 
 with torch.inference_mode():
     y_preds_new = model(X_test)
 
 plot_prediction(predictions=y_preds_new)
 
-#timestamp: 6:49:36
+
+#timestamp: 7:15:40
+
