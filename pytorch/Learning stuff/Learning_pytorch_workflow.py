@@ -16,7 +16,7 @@ machine learning is a game of 2 major parts: (that can be further subdivided int
 """
 # making data using a linear regression formula:
 
-#creating known parameters:
+#creating known parameters: (in an actual dataset scraped from the internet, these won't be given, these are what the model is going to figure out)
 weight = 0.7
 bias = 0.3
 
@@ -84,7 +84,8 @@ def plot_prediction(train_data = X_train,
 
 plot_prediction()
 
-#building a model:
+
+## building a model:
 
 class LinearRegressionModel(nn.Module): # <- almost everything in pytorch inherits from nn, for more info: https://pytorch.org/docs/stable/generated/torch.nn.Module.html
     def __init__(self):
@@ -94,11 +95,15 @@ class LinearRegressionModel(nn.Module): # <- almost everything in pytorch inheri
                                               dtype=torch.float))
         self.bias = nn.Parameter(torch.randn(1,
                                              requires_grad=True,
-                                             dtype=torch.float))
+                                             dtype=torch.float)) #we might also initialize a layer or a list of layers for our model to use
         
     # Forward method to define the computation in a model:
     def forward(self, x: torch.Tensor) -> torch.Tensor: #x is the input data (of torch.Tensor datatype), and this function is going to return a tensor datatype 
-        return self.weight * x + self.bias #this is the linear regression formula
+        return self.weight * x + self.bias #this is the linear regression formula, forward is what defines the opperation that a module does
+    
+    ### any subclass of nn.module needs to override the forward() method from model since it defines the computation of the model
+    
+
 
 """
 what the model does:
@@ -110,4 +115,4 @@ How does it do it:
  2. Back Propagation 
 """
 
-#Current time stamp: 5:07:31
+#Current time stamp: 5:13:41
