@@ -82,7 +82,6 @@ def plot_prediction(train_data = X_train,
 
     plt.show()
 
-plot_prediction()
 
 
 ## building a model:
@@ -97,14 +96,12 @@ class LinearRegressionModel(nn.Module): # <- almost everything in pytorch inheri
                                              requires_grad=True,
                                              dtype=torch.float)) #we might also initialize a layer or a list of layers for our model to use
         
-    # Forward method to define the computation in a model:
+    # Forward method to define the computation in a model:x is a parameter/input value, as you can see
     def forward(self, x: torch.Tensor) -> torch.Tensor: #x is the input data (of torch.Tensor datatype), and this function is going to return a tensor datatype 
         return self.weight * x + self.bias #this is the linear regression formula, forward is what defines the opperation that a module does
     
     ### any subclass of nn.module needs to override the forward() method from model since it defines the computation of the model
     
-
-
 """
 what the model does:
  - Starts with random values (weights and biases)
@@ -113,6 +110,149 @@ what the model does:
 How does it do it:
  1. Gradient Descent
  2. Back Propagation 
+
+ also check out the pytorch cheatsheet by googling pytorch cheatsheet
+ Model building essentials:
+  - torch.nn: contains all of the building materials for computational graphs (a neuro networks can be considered a computational graph)
+  - torch.nn.Parameter(): what parameters our model should try and learn, often a pytorch layer from pytorch.nn will set these for us
+  - torch.nn.Module: the base class for all neuro network modules, if you subclass it, you should override forward()
+  - torch.optim: this references the optimizer in pytorch, they will help with gradient descent and contains various optimization algorithms
+  - torch.data.Dataset: represents a map between the key (label) and sample (feature) pairs of your data, such as images and their associated labels
+  - torch.data.DataLoader: creates a python iterable over a torch Dataset, allowing you to iterate over your data
+  - torchvision.transforms: for pictures and vision into data into models
+  - torchmetrics: 
+
+  
+  - def forward(): all nn.Module subclasses require you to override this, as previously stated, this method defines what happens in the forward computation
+
 """
 
-#Current time stamp: 5:13:41
+
+## Checking the contents of our model:
+
+#to check the parameters of our model, we can use .parameters():
+
+#sets tha seed so the values won't vary and results will stay consistant, without this, the tensor values in the LinearRegressionModel would be random every time (which is what we want, but for educational purposes that's not needed here)
+torch.manual_seed(42)
+
+model = LinearRegressionModel()
+
+print(list(model.parameters()))
+
+#list named parameters: (a parameter is something that the model sets itself/is present in the "()" incase i'm dum and forgot)
+print(model.state_dict()) #the name comes from the self.weight and self.bias i think
+
+
+## making predictions using torch.inference_mode()
+
+#context manager, its good to make this a habit since it turns off gradient tracking since when we're doing predictions, which makes it a lot faster in larger data sets
+#there's also torch.no_grad() but inference_mode is the prefered
+with torch.inference_mode():
+    y_preds = model(X_test)
+
+print(f"Predictions: {y_preds}\nTest Data: {y_test}")
+
+plot_prediction(predictions=y_preds)
+
+
+"""## Training the model (moving from unknown/random parameters closer to the actual accurate parameters, aka moving from a poor representation of the data to a better one)
+
+The loss function tells us how wrong our model's predictions are
+ - note that a loss function can also be refered to as a cost function or a criterion in different areas
+
+Things we need to train: 
+ - Loss function - a function that measures how wrong our model's predictions are compared to the idea outputs, the lower the better
+ - Optimizer - takes into account the loss of a model and adjusts the model's parameters (e.g. weight and bias) to improve the loss function
+
+For pytorch specifically
+, we need:
+ - a training loop
+ - a testing look
+
+you can check out all the loss functions in the pytorch documentation: https://pytorch.org/docs/stable/nn.html#loss-functions
+"""
+
+#choosing and implimenting a loss function and a optimizer:
+
+#using L1Loss/Mean Absolute Error (taking the absolute difference between all the expected value/ideal value and the actual value and returns its average)
+#measures how wrong our data is
+loss_fn = nn.L1Loss()
+
+
+#setup an optimizer (using a Stoch(SGD) algorithm)
+#an optimizer adjusts the parameters according to the loss  function to reduce the loss
+optimizer = torch.optim.SGD(model.parameters(), #the parameters that its going to take a look at/optimize
+                            lr= 0.01) #learning rate: one of the most important hyperparameter (we set) you can set (regular parameters are set by the code)
+
+
+#general idea of how optimizers work: it first increases the value in one direction, if the loss increases, then it increases in the other direction until the best value is achieved
+
+"""
+The learning rate (lr) is how mcuh it adjusts the parameters given to reduce the loss function/optimize the values, so the smaller the lr, the smaller the change in the parameter
+the larget the learning rate, the larger the change int he parameter, if the lr is too bigthen it might skip over the optimal value, but if its too smal, then it'll take too
+long to optimize
+
+Q&A:
+which loss function and optimizer should I use?
+this depends on the context, with experience you'll get an idea of what works and what doesn't with your particular data set
+
+ex. a regression problem would require something like a loss function of nn.L1Loss() and an optimizer like torch.optim.SGD()
+
+but for classification problems like classifying whether or not a photo is of a dog or a cat, you'll likely want to use a loss function of nn.BCELoss() (binary cross entropy loss)
+"""
+
+## Building a training Loop (and a testing loop):
+
+"""
+steps: 
+0. looping through the data
+1. forward pass (moving our data through the forward() method), also called forward propagation, moving in the opposite direction of a back propagation
+2. calculate the loss: compare the forward pass predictions to the ground truth labels
+3. optimizer zero grad
+4. Back propagation (loss backwards?): data moves backwards through the network to calculate the gradients of each of the parameters of the model with respect to loss
+5. optimizer step: use the optimizer to adjust the model's parameters to try to improve the loss
+"""
+
+#an epoch is one loop through the data, a hyper parameter because we set it ourselves
+epochs = 100
+
+print(model.state_dict())
+
+#set the model to training mode, training mode sets all paramaters that requires gradients to require gradients, requires_grad=True
+model.train()
+
+for epoch in range(epochs):
+
+    #forward pass:
+    y_pred = model(X_train)
+
+    #loss function:
+    loss = loss_fn(y_pred, y_train) #predictions first then target
+    print(f"Loss: {loss}")
+
+    #optimizer zero_grad()
+    optimizer.zero_grad()
+
+    #4. back propagation on loss with respect to the parameters of the model
+    loss.backward()
+
+    #Optimizer, we want to step towards a gradient with a slope of 0 (slope of the loss function) or as low as possible, this is gradient descent and pytorch is doing this for you
+    #in torch autograd
+    optimizer.step() #by default how the optimizer changes will accumulate through the loop, so we have to zero them above (shown in step 3) for the next iteration of the loop
+
+    ### testing
+    model.eval() #this turns off gradient tracking
+
+    print(model.state_dict())
+
+#there is also learning rate scheduling, which is basically starting with big steps in the learning rate, then slowly lowering it,like reacing for the coin at the backofthe couch
+#the lowest point is the convergence, its the point where the loss function is at its minimum
+
+#the steps in the loop can be turned into a function
+
+with torch.inference_mode():
+    y_preds_new = model(X_test)
+
+plot_prediction(predictions=y_preds_new)
+
+#timestamp: 6:49:36
