@@ -38,7 +38,7 @@ new_vector = np.matmul(attention, value_vector) #these new matrcies should bette
 
 
 #putting it all into a function:
-def scaled_dor_product_attention(q, k, v, mask=None): #q = query vector, k = key vector, v = value vector
+def scaled_dot_product_attention(q, k, v, mask=None): #q = query vector, k = key vector, v = value vector
     dim_key = q.shape[-1]
     scaled = np.matmul(q, k.T) / math.sqrt(k)
     if mask is not None:
@@ -48,3 +48,6 @@ def scaled_dor_product_attention(q, k, v, mask=None): #q = query vector, k = key
     return out, attention_head
 
 #we can have multi-headed attentions in each cell
+
+#multi-headed attention:
+
