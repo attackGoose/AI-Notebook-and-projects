@@ -285,8 +285,6 @@ with torch.inference_mode():
 plot_prediction(predictions=y_preds_new)
 
 
-#timestamp: 7:15:40
-
 ## Saving models: 
 
 """
@@ -331,3 +329,6 @@ with torch.inference_mode():
 
     ##compare the predictions/forward() calculations of both models
     print(new_model_pred == y_preds)
+
+
+#timestamp: 7:27:00
