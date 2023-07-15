@@ -7,9 +7,9 @@ import math
 
 #each word will contain these 3 vectors, 
 length, dim_key, dim_value = 4, 8, 8
-query_vector = np.random.randn(L, dim_key)
-key_vector = np.random.randn(L, dim_key)
-value_vector = np.random.randn(L, dim_value)
+query_vector = np.random.randn(length, dim_key)
+key_vector = np.random.randn(length, dim_key)
+value_vector = np.random.randn(length, dim_value)
 
 #initial self-attention matrix
 scaled = np.matmul(query_vector, key_vector.T) / math.sqrt(dim_key)
