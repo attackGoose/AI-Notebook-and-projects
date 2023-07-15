@@ -6,6 +6,7 @@ from torch import nn #nn contains all of pytorch's building blocks for neuro net
 #you can combine layers in all the ways imaginable to make a beuro network model to do what you want it to do
 
 import matplotlib.pyplot as plt
+from pathlib import Path
 
 """
 preparing and loading data (data can be almost anything in machine learning, like images, csv, videos, audio, text, or even dna)
@@ -135,6 +136,7 @@ How does it do it:
 #sets tha seed so the values won't vary and results will stay consistant, without this, the tensor values in the LinearRegressionModel would be random every time (which is what we want, but for educational purposes that's not needed here)
 torch.manual_seed(42)
 
+#initialize model
 model = LinearRegressionModel()
 
 print(list(model.parameters()))
@@ -285,3 +287,47 @@ plot_prediction(predictions=y_preds_new)
 
 #timestamp: 7:15:40
 
+## Saving models: 
+
+"""
+there are 3 main methods you should know about when it comes to saving nad loading: (https://pytorch.org/tutorials/beginner/saving_loading_models.html)
+
+1. torch.save(): saves a serialized object to disk, uses the python pickle library's utility for serialization. Models, tensors, and dictionaries are all kinds of objects that
+can be saved using this function, its recommended to save the state_dict, but you can also save the entire model
+
+2. torch.load(): uses the pickle module to unpickle facilities to deserialize object files to memory, in the process also facilitates the device that the data is being loaded
+into
+
+3. torch.nn.Module.load_state_dict(): Loads a model's parameter dictionary using a deserialized state_dict, for more info, check out the website linked above
+"""
+
+#create model directory:
+MODEL_PATH = Path("models")
+MODEL_PATH.mkdir(parents=True, exist_ok=True)
+
+#create a model save path
+MODEL_NAME = "01_pytorch_workflow_tutorial.pth" #the .pth is for saving a pytorch model
+
+MODEL_SAVE_PATH = MODEL_PATH / MODEL_NAME
+
+#saving only the model's state_dict(): (the model's weights and biases and etc)
+print(f"saving model to: {MODEL_SAVE_PATH}")
+torch.save(obj=model.state_dict(), 
+           f=MODEL_SAVE_PATH)
+
+
+## Loading a model into a new instance of the model:
+
+new_model = LinearRegressionModel()
+
+#loading the state dict
+new_model.load_state_dict(torch.load(f=MODEL_SAVE_PATH)) #loads all the state dictionaries like the weights and biases and etc
+
+#making predictions using the loaded model:
+new_model.eval()
+with torch.inference_mode():
+    new_model_pred = new_model(X_test)
+    y_preds = model(X_test) #incase the y_preds value was changed
+
+    ##compare the predictions/forward() calculations of both models
+    print(new_model_pred == y_preds)
