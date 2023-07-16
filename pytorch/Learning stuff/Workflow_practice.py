@@ -63,7 +63,7 @@ epoches = 200
 for epoch in range(epoches):
     model.train()
 
-    y_prediction = model(X_train)
+    y_prediction = model(X_train.reshape(shape=(40, 1)))
 
     #creates a loss value based on difference in predicted value and the expected value
     loss = loss_func(y_prediction, y_train)
@@ -79,10 +79,11 @@ for epoch in range(epoches):
 
     model.eval()
     with torch.inference_mode():
-        test_pred = model(X_test)
+        test_pred = model(X_test.reshape(shape=(10, 1)))
 
         test_loss = loss_func(test_pred, y_test)
 
     if epoch % 10 == 0:
         print(f"epoch = {epoch} | loss = {loss} | test loss = {test_loss}")
 
+print(model.state_dict())
