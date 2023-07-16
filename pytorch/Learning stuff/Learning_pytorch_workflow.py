@@ -318,17 +318,18 @@ torch.save(obj=model.state_dict(),
 
 new_model = LinearRegressionModel()
 
-#loading the state dict
+#loading the state dict/loading the pre-trained values to replace the random values
 new_model.load_state_dict(torch.load(f=MODEL_SAVE_PATH)) #loads all the state dictionaries like the weights and biases and etc
 
 #making predictions using the loaded model:
 new_model.eval()
 with torch.inference_mode():
     new_model_pred = new_model(X_test)
+
     y_preds = model(X_test) #incase the y_preds value was changed
 
-    ##compare the predictions/forward() calculations of both models
+    ##compare the predictions/forward() calculations of both models, they should be the same since the values would be the same
     print(new_model_pred == y_preds)
 
 
-#timestamp: 7:27:00
+##continued in Workflow_ractice.py
