@@ -288,7 +288,7 @@ plot_prediction(predictions=y_preds_new)
 ## Saving models: 
 
 """
-there are 3 main methods you should know about when it comes to saving nad loading: (https://pytorch.org/tutorials/beginner/saving_loading_models.html)
+there are 3 main methods you should know about when it comes to saving and loading: (https://pytorch.org/tutorials/beginner/saving_loading_models.html)
 
 1. torch.save(): saves a serialized object to disk, uses the python pickle library's utility for serialization. Models, tensors, and dictionaries are all kinds of objects that
 can be saved using this function, its recommended to save the state_dict, but you can also save the entire model

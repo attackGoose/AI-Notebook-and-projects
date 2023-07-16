@@ -1,7 +1,7 @@
 import torch
 from torch import nn
 import matplotlib.pyplot as plt
-
+from pathlib import Path
 
 #creating known parameters
 a_value = 1
@@ -28,6 +28,7 @@ def plot_predictions(train_data = X_train,
                      testing_data = X_test,
                      testing_label = y_test,
                      predictions = None):
+    
     plt.figure(figsize=(10, 10))
 
     plt.scatter(train_data, train_label, c="blue", s=4, label="Training Data")
@@ -59,6 +60,12 @@ class QuadraticRegressionModel(nn.Module):
         return (self.a_value*x**2) + (self.b_value*x) + self.c_value
     
 
+#for saving the model later on if needed
+MODEL_PATH = Path("models")
+MODEL_PATH.mkdir(parents=True, exist_ok=True)
+MODEL_NAME = "Quadratic_Regression_Model.pth"
+
+MODEL_SAVE_PATH = MODEL_PATH / MODEL_NAME
 
 
 test_model = QuadraticRegressionModel()
@@ -68,7 +75,6 @@ loss_func = nn.L1Loss()
 
 #optimizer:
 optimizer = torch.optim.SGD(test_model.parameters(), lr=0.02)
-
 
 #data collection for plotting
 epoch_count = []
@@ -105,6 +111,13 @@ for epoches in range(epoch):
 
             print(test_model.state_dict())
 
+#saving the model:
+print(f"saving to: {MODEL_SAVE_PATH}")
+torch.save(obj=test_model.state_dict(),
+           f=MODEL_SAVE_PATH)
+
+
+#for plotting and seeing the results
 plt.plot(torch.tensor(epoch_count).numpy(), torch.tensor(loss_values).numpy(), label="Train loss")
 plt.plot(torch.tensor(epoch_count).numpy(), torch.tensor(test_loss_values).numpy(), label="Test loss")
 plt.title("Training and test loss curves")
