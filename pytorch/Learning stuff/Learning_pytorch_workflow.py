@@ -333,3 +333,5 @@ with torch.inference_mode():
 
 
 ##continued in Workflow_ractice.py
+
+##more info on loading and saving models on the pytorch docs: https://pytorch.org/tutorials/beginner/saving_loading_models.html

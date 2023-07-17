@@ -13,10 +13,11 @@ bias = 7.0
 #range values
 start = 0
 end = 1
-step = 0.02
+step = 0.01
 
 #x is usually a feature matrix and same iwth y
 X = torch.arange(start, end, step)
+print(X.shape)
 y = weight * X + bias
 
 train_split = int(0.8 * len(X))
@@ -72,7 +73,7 @@ epoches = 200
 for epoch in range(epoches):
     model.train()
 
-    y_prediction = model(X_train.reshape(shape=(40, 1)))
+    y_prediction = model(X_train.reshape(shape=(80, 1)))
 
     #creates a loss value based on difference in predicted value and the expected value
     loss = loss_func(y_prediction, y_train)
@@ -88,7 +89,7 @@ for epoch in range(epoches):
 
     model.eval()
     with torch.inference_mode():
-        test_pred = model(X_test.reshape(shape=(10, 1)))
+        test_pred = model(X_test.reshape(shape=(20, 1)))
 
         test_loss = loss_func(test_pred, y_test)
 
@@ -99,7 +100,7 @@ print(model.state_dict())
 
 model.eval()
 with torch.inference_mode():
-    y_pred = model(X_test.reshape(shape=(10, 1)))
+    y_pred = model(X_test.reshape(shape=(20, 1)))
 
 
 #this should run into an error because its working with a tensor but idk why its not, so i'm not going to fix it since its not broken
@@ -148,5 +149,8 @@ loaded_model.load_state_dict(torch.load(MODEL_SAVE_PATH))
 print(loaded_model.state_dict())
 loaded_model.eval()
 with torch.inference_mode:
-    new_pred = loaded_model(X_test.reshape(shape=(10, 1)))
+    new_pred = loaded_model(X_test.reshape(shape=(20, 1)))
     print(new_pred == test_pred)
+
+
+#continued in neuronetwork_classification.py
