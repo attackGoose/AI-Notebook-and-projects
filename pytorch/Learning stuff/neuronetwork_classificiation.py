@@ -2,7 +2,7 @@
 import torch
 from torch import nn
 import matplotlib.pyplot as plt
-
+import matplotlib
 import matplotlib.pyplot as plt
 import pandas as pd
 #for machine learning datasets
@@ -33,12 +33,12 @@ n_samples = 1000
 #x is matrix, y is labels
 X, y = make_circles(n_samples,
                     noise=0.3,
-                    random_state=42)
+                    random_state=143)
 
 print(len(X), len(y))
 
 #from this, you can see that x has 2 features for each label of y
-#also since y only has 0s and 1s, it uses binary classification
+#also since y only has 0s and 1s, it uses binary classification, if its 0, 1, 2, etc, then it would be multi-class classification
 print(f"first 5 samples of X: {X[:5]}\nfirst 5 samples of y: {y[:5]}") 
 
 #making a dataframe: 
@@ -46,7 +46,13 @@ circles = pd.DataFrame({"X1": X[:, 0],
                         "X2": X[:, 1],
                         "label": y})
 
+circles.head(10)
+
+
 plt.scatter(x=X[:, 0],
             y=X[:, 1],
             c=y)
+
 plt.show()
+
+ #the data we're working with is refered to a toy dataset, a dataset that's small enough to experiment but sizeable enough to practice the fundimentals
