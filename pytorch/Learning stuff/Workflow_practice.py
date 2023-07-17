@@ -5,7 +5,7 @@ from torch import nn
 device = "cuda" if torch.cuda.is_available() else "cpu"
 
 #creating data using cubic regression formula
-weight = 4.0
+weight = 3
 bias = 7.0
 
 #range values
@@ -40,6 +40,11 @@ print(model, list(model.state_dict()))
 
 #setting the data and model to use the target device:
 model.to(device=device)
+
+X_test = X_test.to(device=device)
+X_train = X_train.to(device=device)
+y_test = y_test.to(device=device)
+y_train = y_train.to(device=device)
 
 print(f"x_train size: {X_train.shape} | x_test size: {X_test.shape} | y_train size: {y_train.shape} | y_test size: {y_test.shape}")
 
