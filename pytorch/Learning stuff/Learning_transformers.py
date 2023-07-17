@@ -1,7 +1,8 @@
 #resources to use: https://youtube.com/playlist?list=PLTl9hO2Oobd97qfWC40gOSU8C0iu0m2l4
 #btw the stuff isn't in order, they're mostly coding out the theory
 
-
+import torch
+from torch import nn
 import numpy as np
 import math
 
@@ -51,12 +52,49 @@ def scaled_dot_product_attention(q, k, v, mask=None): #q = query vector, k = key
 
 #we can have multi-headed attentions in each cell
 
+
 #multi-headed attention:
 
+#data:
+sequence_length = 4 #size of each vector in the tensor
+batch_size = 1 #helps in paralell processing
+input_dim = 512 #vector dimension of the input
+model_dim = 512 #output dimension of the unit
+
+X = torch.randn((batch_size, sequence_length, input_dim))
+qkv_layer = nn.Linear(input_dim, 3*model_dim) #creates the concatenation of all the query, key, and value values and puts it into a layer, each has 8 attention heads
+qkv = qkv_layer(X)
+print(qkv.shape)
+
+num_heads = 8
+head_dim = model_dim // num_heads
+qkv = qkv.reshape(batch_size, sequence_length, num_heads, 3 * head_dim) #creates a tensor that is of shape [1, 4, 8, 192]
+print(qkv.shape)
+
+#switches position of num_heads and sequence_length so its easier to perform paralell processing on the last 2 dimensions
+qkv = qkv.permute(0, 2, 1, 3)
+print(qkv.shape)
+
+#breaks down the qkv into individual tensors each with 64 dimensions
+q, k, v = qkv.chunk(3, dim=1)
 
 
+##attention mech:
 
 
+"""
+class MultiHeadAttention(nn.Module):
+    def __init__(self):
+        super().__init__()
+        sequence_length = 4 #size of each vector in the tensor
+        batch_size = 1 #helps in paralell processing
+        input_dim = 512 #vector dimension of the input
+        model_dim = 512 #output dimension of the unit
+        query_key_value_layer = nn.Linear(input_dim, 3*model_dim) 
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        pass
+"""
 
 
 """Transformer encoder:"""

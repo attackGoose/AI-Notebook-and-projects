@@ -55,4 +55,7 @@ plt.scatter(x=X[:, 0],
 
 plt.show()
 
- #the data we're working with is refered to a toy dataset, a dataset that's small enough to experiment but sizeable enough to practice the fundimentals
+#the data we're working with is refered to a toy dataset, a dataset that's small enough to experiment but sizeable enough to practice the fundimentals
+
+
+## changing the data into tensors to work with
