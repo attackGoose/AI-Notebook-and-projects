@@ -1,5 +1,7 @@
 import torch
 from torch import nn
+import matplotlib.pyplot as plt
+from pathlib import Path
 
 #check if gpu is available
 device = "cuda" if torch.cuda.is_available() else "cpu"
@@ -33,6 +35,8 @@ class LinearRegressionModel(nn.Module):
     
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         return self.linear_layer(x)
+
+torch.manual_seed(143)
 
 model = LinearRegressionModel()
 
@@ -92,3 +96,57 @@ for epoch in range(epoches):
         print(f"epoch = {epoch} | loss = {loss} | test loss = {test_loss}")
 
 print(model.state_dict())
+
+model.eval()
+with torch.inference_mode():
+    y_pred = model(X_test.reshape(shape=(10, 1)))
+
+
+#this should run into an error because its working with a tensor but idk why its not, so i'm not going to fix it since its not broken
+def plot_prediction(train_data = X_train, 
+                    train_lables = y_train, 
+                    test_data = X_test, 
+                    test_lables = y_test, 
+                    predictions = None):
+    """
+    Plots training data, test data, and compares predictions
+    """
+    plt.figure(figsize=(10, 7))
+
+    #plot training data in blue
+    plt.scatter(train_data, train_lables, c="blue", s=4, label="Training Data")
+    
+    #plot testing data in green
+    plt.scatter(test_data, test_lables, c="green", s=4, label="Testing Data")
+
+    if predictions != None:
+        #plot the predictions if they exist
+        plt.scatter(test_data, predictions, c="red", s=4, label="Predictions")
+
+    plt.legend(prop={"size": 14})
+
+    plt.show()
+
+
+plot_prediction(predictions=y_pred)
+
+#save
+MODEL_PATH = Path("models")
+MODEL_PATH.mkdir(parents=True, exist_ok=True)
+
+MODEL_NAME = "Linear_layer_model.pth"
+
+MODEL_SAVE_PATH = MODEL_NAME / MODEL_PATH
+
+print(f"saving to: {MODEL_SAVE_PATH}")
+torch.save(obj=model.state_dict(),
+           f=MODEL_SAVE_PATH)
+
+loaded_model = LinearRegressionModel()
+loaded_model.load_state_dict(torch.load(MODEL_SAVE_PATH))
+
+print(loaded_model.state_dict())
+loaded_model.eval()
+with torch.inference_mode:
+    new_pred = loaded_model(X_test.reshape(shape=(10, 1)))
+    print(new_pred == test_pred)

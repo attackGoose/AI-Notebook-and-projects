@@ -126,3 +126,11 @@ plt.xlabel("Epoch")
 plt.show()
 
 plot_predictions(predictions=test_pred)
+
+
+##loading a model:
+
+new_model = QuadraticRegressionModel()
+
+new_model.load_state_dict(torch.load(f=MODEL_SAVE_PATH))
+
