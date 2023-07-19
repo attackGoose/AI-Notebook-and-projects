@@ -132,7 +132,7 @@ optimizer = torch.optim.Adam(params=circ_model.parameters(),
 def accuracy_func(y_true, y_pred):
     #correct checks how many items in y_true are equal to y_pred and takes the sum of that, then takes the item of that to get the single value version of it
     correct = torch.eq(y_true, y_pred).sum().item()
-    acc = (correct / len(y_pred)) / 100
+    acc = (correct / len(y_pred)) * 100
     return acc
 
 
@@ -213,7 +213,7 @@ for epoch in range(epoches):
         test_acc = accuracy_func(y_true=y_test,
                                  y_pred=testing_pred_label)
 
-        if epoch % 10 == 0:
-            #the :5f and :.2f represent the amount of numbers past the decimal/floating point
-            print(f"Epoch: {epoch} | Training Loss: {loss:.5f} | Training accuracy: {acc:.2f} | Testing Loss: {test_loss:.5f} | Testing accuracy: {test_acc:.2f}")
+    if epoch % 10 == 0:
+        #the :5f and :.2f represent the amount of numbers past the decimal/floating point
+        print(f"Epoch: {epoch} | Training Loss: {loss:.5f} | Training accuracy: {acc:.2f} | Testing Loss: {test_loss:.5f} | Testing accuracy: {test_acc:.2f}")
 
