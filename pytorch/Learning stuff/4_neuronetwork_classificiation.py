@@ -109,7 +109,6 @@ print(circ_model.state_dict())
 
 print(X_test.shape)
 
-#the shape is incompatable for the hidden layers, which is 5x1, so the [1] has to be equal to [0] which is 5
 with torch.inference_mode():
     untrianed_prediction = circ_model(X_test)
     print(f"\n\n\nlength of prediction: {len(untrianed_prediction)}, shape: {untrianed_prediction.shape}")
@@ -118,37 +117,103 @@ with torch.inference_mode():
 
 #L1Loss is for predicting a number, in this case we're doing classification, so we want bineary cross entropy, or categorical cross entropy/cross entropy
 
+
+#NOTE: timestamp is currently at 10:07:22
+
+
 loss_func = nn.BCEWithLogitsLoss() #has built in sigmoid activation func
 
 #logits in deep learning: https://datascience.stackexchange.com/questions/31041/what-does-logits-in-machine-learning-mean
 
-
 optimizer = torch.optim.Adam(params=circ_model.parameters(),
-                            lr=0.02,)
+                            lr=0.01,)
 
-epoches = 100
+#calculates accuracy out of 100 examples, what percentage does our model get right
+def accuracy_func(y_true, y_pred):
+    #correct checks how many items in y_true are equal to y_pred and takes the sum of that, then takes the item of that to get the single value version of it
+    correct = torch.eq(y_true, y_pred).sum().item()
+    acc = (correct / len(y_pred)) / 100
+    return acc
+
+
+#training
+
+"""
+going from raw logits -> prediction probabilities -> prediction lables
+we can convert the logits into prediction probabilities by passing them into some kind of activation function (e.g. sigmoid for binary cross entropy and softmax for multiclass
+classification)
+
+then we can convert the prediction probabilities into prediction labels by either rounding them or taking the argmax in the case of the softmax activation function
+"""
+with torch.inference_mode():
+    #raw output of our model are going to be refered to logits:
+    y_logits = circ_model(X_test.to(device=device))[:5]
+    print(y_logits, "\nthese are the raw outputs of the model without the activation function, which determines the magnitude of effect of an neuron")
+
+    #we need to pass the logits through an activation function to turn it into prediction probabilities
+    y_pred_probs = torch.sigmoid(y_logits)
+
+    #then we round those probabilities and turn it into prediction labels, anything equal to or above 0.5 is est to 1, anything below that is set to 0
+    y_preds = torch.round(y_pred_probs)
+
+    #piecing together everything above: (prediction labels <- prediction probabilities via sigmoid <- logits)
+    y_pred_labels = torch.round(torch.sigmoid(circ_model(X_test.to(device=device))[:5])) #the [:5] is to make sure that I don't overflow the terminal and have to scroll up a bunch
+
+    #check for equality: torch.eq checks for equality in the tensors, also gets rid of extra dimension
+    print(torch.eq(y_preds.squeeze(), y_pred_labels.squeeze()))
+
+    print(y_preds.squeeze())
+
+
+""" for logits
+in summary, they are the raw outputs of our models that can be turned into probabilities for our labels of the data via the sigmoid function (becaues this is a binary cross entropy
+problem, it would be softmax() if it was a multi-class classification problem), and finally by rounding that we can get our predicted labels
+"""
+
+##building the actual training and testing loop
+
+torch.manual_seed(42)
+
+epoches = 300
 
 for epoch in range(epoches):
+
     circ_model.train()
 
-    y_pred = circ_model(X_train)
+    #forward pass
+    y_logit = circ_model(X_train.to(device=device)).squeeze()
+    training_pred_label = torch.round(torch.sigmoid(y_logit))
 
-    print(y_pred[:10], y_train[:10])
+    """
+    if this was BCELoss: 
+    loss = loss_func(torch.sigmoid(y_logits), y_train) BCE expects prediction probabilities as inputs
+    """
 
-    loss = loss_func(y_pred, y_train)
+    # ****this is a different loss function, this loss expects raw logits as inputs****
+    loss = loss_func(y_logit, y_train)
+
+    acc = accuracy_func(y_true=y_train,
+                        y_pred=training_pred_label)
 
     optimizer.zero_grad()
 
-    loss.backward()
+    loss.backward() #back propagation
 
-    optimizer.step()
+    optimizer.step() #gradient descent
 
+    ##testing 
     circ_model.eval()
     with torch.inference_mode():
-        test_pred = circ_model(X_test)
+        #forward pass
+        test_logits = circ_model(X_test.to(device=device)).squeeze()
+        testing_pred_label = torch.round(torch.sigmoid(test_logits))
 
-        test_loss = loss_func(test_pred, y_test)
+        #test loss/acc
+        test_loss = loss_func(test_logits, y_test)
+        test_acc = accuracy_func(y_true=y_test,
+                                 y_pred=testing_pred_label)
 
-        
         if epoch % 10 == 0:
-            print(f"Epoch: {epoch} | Train Loss: {loss} | Test Loss: {test_loss}")
+            #the :5f and :.2f represent the amount of numbers past the decimal/floating point
+            print(f"Epoch: {epoch} | Training Loss: {loss:.5f} | Training accuracy: {acc:.2f} | Testing Loss: {test_loss:.5f} | Testing accuracy: {test_acc:.2f}")
+
