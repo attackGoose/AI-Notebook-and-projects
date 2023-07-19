@@ -217,3 +217,20 @@ for epoch in range(epoches):
         #the :5f and :.2f represent the amount of numbers past the decimal/floating point
         print(f"Epoch: {epoch} | Training Loss: {loss:.5f} | Training accuracy: {acc:.2f} | Testing Loss: {test_loss:.5f} | Testing accuracy: {test_acc:.2f}")
 
+
+
+## Making predictions and evaluating the model since from the metrics, the model isn't learning anything
+
+
+#NOTE: 10:49:44 there's a good resource
+
+#Visualizing:
+import requests
+from pathlib import Path
+
+if Path("helper_functions.py").is_file() is False:
+    print("Downloading helper_functions.py")
+    request = requests.get("https://github.com/mrdbourke/pytorch-deep-learning/blob/main/helper_functions.py")
+    with open(".helper_functions.py", "rb") as f:
+        f.write(request.content)
+
