@@ -89,8 +89,8 @@ class CircleModel(nn.Module):
         super().__init__()
 
         #create 2 nn.Linear layers that are capable of handling the shapes of the data,
-        self.first_layer = nn.Linear(in_features=2, out_features=10) #in this case, i have 2 input feature neurons that pass to 6 hidden neurons
-        self.second_layer = nn.Linear(in_features=10, out_features=1) 
+        self.first_layer = nn.Linear(in_features=2, out_features=8) #in this case, i have 2 input feature neurons that pass to 6 hidden neurons
+        self.second_layer = nn.Linear(in_features=8, out_features=1) 
         
         #the 6 hidden neurons pass to 2 output/label neurons, this allows the model to learn 6 patterns from 2 numbers, 
         #potentially leading to better outputs, but it doesn't always work, the optimal number will vary
@@ -125,7 +125,7 @@ loss_func = nn.BCEWithLogitsLoss() #has built in sigmoid activation func
 
 #logits in deep learning: https://datascience.stackexchange.com/questions/31041/what-does-logits-in-machine-learning-mean
 
-optimizer = torch.optim.Adam(params=circ_model.parameters(),
+optimizer = torch.optim.SGD(params=circ_model.parameters(),
                             lr=0.01,)
 
 #calculates accuracy out of 100 examples, what percentage does our model get right
@@ -228,9 +228,65 @@ for epoch in range(epoches):
 import requests
 from pathlib import Path
 
-if Path("helper_functions.py").is_file() is False:
-    print("Downloading helper_functions.py")
-    request = requests.get("https://github.com/mrdbourke/pytorch-deep-learning/blob/main/helper_functions.py")
-    with open(".helper_functions.py", "rb") as f:
-        f.write(request.content)
+# Download helper functions from Learn PyTorch repo (if not already downloaded)
+if Path("helper_functions.py").is_file():
+  print("helper_functions.py already exists, skipping download")
+else:
+  print("Downloading helper_functions.py")
+  request = requests.get("https://raw.githubusercontent.com/mrdbourke/pytorch-deep-learning/main/helper_functions.py")
+  with open("helper_functions.py", "wb") as f:
+    f.write(request.content)
 
+from helper_functions import plot_predictions, plot_decision_boundary
+
+#creating the graph
+plt.figure(figsize=(12, 6))
+plt.subplot(1, 2, 1)
+plt.title("Train")
+plot_decision_boundary(circ_model, X_train, y_train)
+plt.subplot(1, 2, 2)
+plt.title("Test")
+plot_decision_boundary(circ_model, X_test, y_test)
+plt.show()
+
+
+
+## step 5: Improving the model:
+
+"""
+what we could do (these options are all from our model's perspective since they all deal with the data):
+add more layers, to give the model more chances to learn about patterns in the data
+add more hidden units
+fit for more epochs
+changing the activation function or putting activation functions within your model (yes you can do that)
+changing the learning rate
+changing the loss function
+
+### becaues these are all things that we can change, these are called hyperparameters
+
+
+we could also change the data but that comes later
+"""
+
+# adding more hidden units and adding more layers and increasing epochs to 1000,
+# generally you would only like to change 1 value at a time and track the results since you won't know what actually increased the accuracy
+class CircleModelV2(nn.Module):
+    def __init__(self):
+        super().__init__()
+        self.layer_1 = nn.Linear(in_features=2, out_features=16)
+        self.layer_2 = nn.Linear(in_features=16, out_features=16)
+        self.layer_3 = nn.Linear(in_features=16, out_features=1)
+    
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        #also, this way of writing operations is the fastest since you're doing them all at once
+        return self.layer_3(self.layer_2(self.layer_1(x)))
+
+
+modelV2 = CircleModelV2()
+
+#loss function:
+loss_funcV2 = nn.BCEWithLogitsLoss()
+
+#optimizer:
+optimizerV2 = torch.optim.Adam(modelV2.parameters(),
+                               lr=0.01)
