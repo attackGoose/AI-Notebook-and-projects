@@ -299,21 +299,27 @@ epochs = 1000
 X_train, y_train = X_train.to(device=device), y_train.to(device=device)
 
 for epoch in range(epochs):
+    #training mode on
     modelV2.train()
 
+    #forward pass
     y_logit = modelV2(X_train).squeeze()
     y_train_pred = torch.round(torch.sigmoid(y_logit))
 
+    #calculate the loss
     lossV2 = loss_funcV2(y_logit, y_train)
     #the accuracy is just for us to see
     trainV2_acc = accuracy_func(y_true=y_train, y_pred=y_train_pred)
 
     optimizerV2.zero_grad()
 
+    #back propagation
     lossV2.backward()
 
+    #gradient descent
     optimizerV2.step()
 
+    #testing:
     modelV2.eval()
     with torch.inference_mode():
         test_logit = modelV2(X_test.to(device=device)).squeeze()
@@ -399,7 +405,7 @@ X, y = make_circles(n_samples,
                     random_state=42)
 
 plt.scatter(X[:, 0], X[:, 1], c=y)
-plt.show()
+#plt.show()
 
 #converting data to tensors:
 from sklearn.model_selection import train_test_split
@@ -418,6 +424,7 @@ class NonLinearModel(nn.Module):
         self.layer_1 = nn.Linear(in_features=2, out_features=10)
         self.layer_2 = nn.Linear(in_features=10, out_features=10)
         self.layer_3 = nn.Linear(in_features=10, out_features=1)
+        #the relu layer switches all negative numbers with 0 for the layer that's passed into it, introduces non-linearity
         self.relu = nn.ReLU()
     
     def forward(self, x: torch.Tensor) -> torch.Tensor:
@@ -430,18 +437,27 @@ loss_funcV4 = nn.BCEWithLogitsLoss() #binary classification problem
 optimizerV4 = torch.optim.SGD(params=ModelV4.parameters(),
                             lr=0.1)
 
-epochs = 500
+epochs = 1000
 
 for epoch in range(epochs):
-
     #training
     ModelV4.train()
+
+    #forward pass
     y_logit = ModelV4(X_train).squeeze()
+
+    #calculate the loss
     loss = loss_funcV4(y_logit, y_train)
     #accuracy for us to see:
+
     train_acc = accuracy_func(y_true=y_train, y_pred=torch.round(torch.sigmoid(y_logit)))
+
     optimizerV4.zero_grad()
+
+    #back propagation
     loss.backward()
+
+    #gradient descent
     optimizerV4.step()
 
     #testing:
@@ -451,7 +467,7 @@ for epoch in range(epochs):
         test_loss = loss_funcV4(test_logit, y_test)
         test_acc = accuracy_func(y_true=y_test, y_pred=torch.round(torch.sigmoid(test_logit)))
         
-    if epoch % 10 == 0:
+    if epoch % 100 == 0:
         print(f"Epoch: {epoch} | Train loss: {loss} | Train accuracy: {train_acc} | Test loss: {test_loss} | Test Accuracy: {test_acc}")
 
 #creating the graph
