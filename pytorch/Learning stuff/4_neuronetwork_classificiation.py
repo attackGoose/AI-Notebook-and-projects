@@ -1,3 +1,5 @@
+#this is for classification and an introduction to non-linear models that use non-linear activation functions like ReLU and discuss things like softmax() and sigmoid() for others
+
 #link the tutorial: https://www.youtube.com/watch?v=V_xro1bcAuA
 import torch
 from torch import nn
@@ -290,3 +292,174 @@ loss_funcV2 = nn.BCEWithLogitsLoss()
 #optimizer:
 optimizerV2 = torch.optim.Adam(modelV2.parameters(),
                                lr=0.01)
+
+#training loop:
+epochs = 1000
+
+X_train, y_train = X_train.to(device=device), y_train.to(device=device)
+
+for epoch in range(epochs):
+    modelV2.train()
+
+    y_logit = modelV2(X_train).squeeze()
+    y_train_pred = torch.round(torch.sigmoid(y_logit))
+
+    lossV2 = loss_funcV2(y_logit, y_train)
+    #the accuracy is just for us to see
+    trainV2_acc = accuracy_func(y_true=y_train, y_pred=y_train_pred)
+
+    optimizerV2.zero_grad()
+
+    lossV2.backward()
+
+    optimizerV2.step()
+
+    modelV2.eval()
+    with torch.inference_mode():
+        test_logit = modelV2(X_test.to(device=device)).squeeze()
+        y_test_pred = torch.round(torch.sigmoid(test_logit))
+
+        test_loss = loss_funcV2(test_logit, y_test)
+        testV2_acc = accuracy_func(y_true=y_test, y_pred=y_test_pred)
+
+        if epoch % 10 == 0:
+            print(f"Epoch: {epoch} | Train loss: {lossV2} | Train accuracy: {trainV2_acc} | Test loss: {test_loss} | Test Accuracy: {testV2_acc}")
+
+#creating the graph
+plt.figure(figsize=(12, 6))
+plt.subplot(1, 2, 1)
+plt.title("Train")
+plot_decision_boundary(modelV2, X_train, y_train)
+plt.subplot(1, 2, 2)
+plt.title("Test")
+plot_decision_boundary(modelV2, X_test, y_test)
+plt.show()
+
+# still a coin toss
+
+
+#changing it to learn a straight line to see if its learning anything at all:
+
+weight = 7
+bias = 3
+start = 0
+end = 1
+step = 0.01
+
+#creating data:
+X_regression = torch.arange(start, end, step).unsqueeze(dim=1)
+y_regression = weight * X_regression + bias
+
+train_split = int(0.8*len(X_regression))
+X_train_regression, y_train_regression = X_regression[:train_split], y_regression[:train_split]
+X_test_regression, y_test_regression = X_regression[train_split:], y_regression[train_split:]
+
+
+plot_predictions(train_data=X_train_regression,
+                 train_labels=y_train_regression,
+                 test_data=X_test_regression,
+                 test_labels=y_test_regression)
+plt.show()
+
+modelV3 = nn.Sequential(
+    nn.Linear(in_features=1, out_features=10, bias=True),
+    nn.Linear(in_features=10, out_features=10, bias=True),
+    nn.Linear(in_features=10, out_features=1, bias=True)
+)
+
+loss_funcV3 = nn.L1Loss()
+
+optimizerV3 = torch.optim.SGD(modelV3.parameters(),
+                            lr=0.1)
+
+epochs = 1000
+for epoch in range(epochs):
+    modelV3.train()
+    y_predV3 = modelV3(X_train_regression)
+    loss = loss_funcV3(y_predV3, y_train_regression)
+    optimizerV3.zero_grad()
+    loss.backward()
+    optimizerV3.step()
+
+    modelV3.eval()
+    with torch.inference_mode():
+        test_pred = modelV3(X_test_regression)
+        test_loss = loss_funcV3(test_pred, y_test_regression)
+
+    if epoch % 10 == 0:
+        print(f"Epoch: {epoch} | Train Loss: {loss:5f} | Test Loss: {test_loss:5f}")
+
+
+####NOTE: 6. Adding Non-Linearity into our model: (non-straight lines)
+
+#re-creating non-Linear data
+n_samples = 1000
+X, y = make_circles(n_samples, 
+                    noise = 0.3,
+                    random_state=42)
+
+plt.scatter(X[:, 0], X[:, 1], c=y)
+plt.show()
+
+#converting data to tensors:
+from sklearn.model_selection import train_test_split
+
+X = torch.from_numpy(X).type(torch.float)
+y = torch.from_numpy(y).type(torch.float)
+
+#split:
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+
+#building a model with non-linearity:
+class NonLinearModel(nn.Module):
+    def __init__(self):
+        super().__init__()
+        self.layer_1 = nn.Linear(in_features=2, out_features=10)
+        self.layer_2 = nn.Linear(in_features=10, out_features=10)
+        self.layer_3 = nn.Linear(in_features=10, out_features=1)
+        self.relu = nn.ReLU()
+    
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        return self.layer_3(self.layer_2(self.relu(self.layer_1(x))))
+    
+ModelV4 = NonLinearModel().to(device=device)
+
+loss_funcV4 = nn.BCEWithLogitsLoss() #binary classification problem
+
+optimizerV4 = torch.optim.SGD(params=ModelV4.parameters(),
+                            lr=0.1)
+
+epochs = 500
+
+for epoch in range(epochs):
+
+    #training
+    ModelV4.train()
+    y_logit = ModelV4(X_train).squeeze()
+    loss = loss_funcV4(y_logit, y_train)
+    #accuracy for us to see:
+    train_acc = accuracy_func(y_true=y_train, y_pred=torch.round(torch.sigmoid(y_logit)))
+    optimizerV4.zero_grad()
+    loss.backward()
+    optimizerV4.step()
+
+    #testing:
+    ModelV4.eval()
+    with torch.inference_mode():
+        test_logit = ModelV4(X_test).squeeze()
+        test_loss = loss_funcV4(test_logit, y_test)
+        test_acc = accuracy_func(y_true=y_test, y_pred=torch.round(torch.sigmoid(test_logit)))
+        
+    if epoch % 10 == 0:
+        print(f"Epoch: {epoch} | Train loss: {loss} | Train accuracy: {train_acc} | Test loss: {test_loss} | Test Accuracy: {test_acc}")
+
+#creating the graph
+plt.figure(figsize=(12, 6))
+plt.subplot(1, 2, 1)
+plt.title("Train")
+plot_decision_boundary(ModelV4, X_train, y_train)
+plt.subplot(1, 2, 2)
+plt.title("Test")
+plot_decision_boundary(ModelV4, X_test, y_test)
+plt.show()
