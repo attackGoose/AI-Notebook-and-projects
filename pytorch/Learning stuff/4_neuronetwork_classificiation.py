@@ -428,7 +428,7 @@ class NonLinearModel(nn.Module):
         self.relu = nn.ReLU()
     
     def forward(self, x: torch.Tensor) -> torch.Tensor:
-        return self.layer_3(self.layer_2(self.relu(self.layer_1(x))))
+        return self.layer_3(self.relu(self.layer_2(self.relu(self.layer_1(x)))))
     
 ModelV4 = NonLinearModel().to(device=device)
 
@@ -479,3 +479,8 @@ plt.subplot(1, 2, 2)
 plt.title("Test")
 plot_decision_boundary(ModelV4, X_test, y_test)
 plt.show()
+
+
+#Evaluating the model:
+
+#timestamp: 12:29:24
