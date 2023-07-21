@@ -421,9 +421,9 @@ X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_
 class NonLinearModel(nn.Module):
     def __init__(self):
         super().__init__()
-        self.layer_1 = nn.Linear(in_features=2, out_features=10)
-        self.layer_2 = nn.Linear(in_features=10, out_features=10)
-        self.layer_3 = nn.Linear(in_features=10, out_features=1)
+        self.layer_1 = nn.Linear(in_features=2, out_features=16)
+        self.layer_2 = nn.Linear(in_features=16, out_features=16)
+        self.layer_3 = nn.Linear(in_features=16, out_features=1)
         #the relu layer switches all negative numbers with 0 for the layer that's passed into it, introduces non-linearity
         self.relu = nn.ReLU()
     
@@ -435,7 +435,7 @@ ModelV4 = NonLinearModel().to(device=device)
 loss_funcV4 = nn.BCEWithLogitsLoss() #binary classification problem
 
 optimizerV4 = torch.optim.SGD(params=ModelV4.parameters(),
-                            lr=0.1)
+                            lr=0.05)
 
 epochs = 1000
 
@@ -470,6 +470,12 @@ for epoch in range(epochs):
     if epoch % 100 == 0:
         print(f"Epoch: {epoch} | Train loss: {loss} | Train accuracy: {train_acc} | Test loss: {test_loss} | Test Accuracy: {test_acc}")
 
+
+#Evaluating the model:
+with torch.inference_mode():
+    y_pred = torch.round(torch.sigmoid(ModelV4(X_test))).squeeze()
+    print(y_pred[:10], y_test[:10])
+
 #creating the graph
 plt.figure(figsize=(12, 6))
 plt.subplot(1, 2, 1)
@@ -481,6 +487,4 @@ plot_decision_boundary(ModelV4, X_test, y_test)
 plt.show()
 
 
-#Evaluating the model:
-
-#timestamp: 12:29:24
+##the rest is continued in 4.7
