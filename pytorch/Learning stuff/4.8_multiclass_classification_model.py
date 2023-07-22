@@ -27,7 +27,7 @@ X_blob, y_blob = make_blobs(n_samples=1000,
 
 #changing them into tensors
 X_blob = torch.from_numpy(X_blob).type(dtype=torch.float)
-y_blob = torch.from_numpy(y_blob).type(dtype=torch.long) #this one shoudl be long tensor because from cross entropy loss it needs to be of type long
+y_blob = torch.from_numpy(y_blob).type(dtype=torch.LongTensor) #this one shoudl be long tensor because from cross entropy loss it needs to be of type long
 
 #split into training and testing sets
 X_blob_train, X_blob_test, y_blob_train, y_blob_test = train_test_split(X_blob,
@@ -156,4 +156,34 @@ plt.title("Test")
 plot_decision_boundary(Blobby, X_blob_test, y_blob_test)
 plt.show()
 
-#timestamp: 13:38:24
+
+##more classiication metrics:
+
+"""
+a lot of these methods are in torchmetrics or sklearn (torchmetrics: https://torchmetrics.readthedocs.io/en/stable/, google sklearn)
+you can also make your own metric by subclassing the Metric classfrom torchmetrics
+
+#balanced data:
+Accuracy - out of 100 samples how many would the model get right
+
+#for imbalanced data - reosurce: https://towardsdatascience.com/beyon-accuracy=precision-and-recall-3da06bea9f6c
+Precision - higher precision leads to less false positives, but might cause more false negatives
+Recall - higher recall leads to less false negatives, but might cause more false positives
+
+Precision Recall tradeoff (if you increase precision you lower recall, and vice versa)
+F1-score - combination of Precision and Recall, usually a overall good metric for a classification model
+
+
+Confusion Matrix - used to compare predictions to truth labels/correct labels to see where the model gets confused, can be hard to use for large amounts of data
+
+Classification Report - 
+"""
+
+from torchmetrics import Accuracy
+
+torchmetric_accuracy = Accuracy(task="multiclass", num_classes=4).to(device=device)
+
+print(torchmetric_accuracy(y_preds, y_blob_test))
+
+## Link to the notebook and more exercises: https://www.learnpytorch.io/02_pytorch_classification/#9-more-classification-evaluation-metrics
+#https://github.com/mrdbourke/pytorch-deep-learning/blob/main/02_pytorch_classification.ipynb
