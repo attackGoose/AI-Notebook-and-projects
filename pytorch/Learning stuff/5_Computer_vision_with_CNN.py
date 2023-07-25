@@ -358,7 +358,7 @@ def eval_model(model: torch.nn.Module,
 
    model.eval()
    with torch.inference_mode():
-      for X, y in data_loader:
+      for X, y in tqdm(data_loader): #tqdm cus progress bar cool
          #making predictions:
          y_pred = model(X)
 
@@ -375,3 +375,9 @@ def eval_model(model: torch.nn.Module,
            "model_loss": loss.item(), #turning the loss into a single item after its been scaled
            "model_acc": acc}
 
+model_0_results = eval_model(model=model_0,
+           data_loader=test_dataloader,
+           loss_func=loss_func,
+           accuracy_func=accuracy_fn)
+
+print(model_0_results)
