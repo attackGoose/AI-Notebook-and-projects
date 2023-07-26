@@ -255,10 +255,24 @@ for more information: https://horace.io/brrr_intro.html
 model_1_results = eval_model(model=model_1,
                              data_loader=test_dataloader,
                              loss_func=loss_func,
-                             accuracy_func=accuracy_fn)
+                             accuracy_func=accuracy_fn,
+                             device=device)
 
 print(model_1_results)
 
 
-### Building a Convolutional Neuro Network
 
+
+### Building a Convolutional Neuro Network Model
+
+"""
+also, to see what's happening inside a CNN, see: https://poloclub.github.io/cnn-explainer
+"""
+
+class FashionMNISTModelV2(nn.Module):
+
+    """Model architecture that replicates the TinyVGG CNN as shown on the website linked above"""
+
+    def __init__(self):
+        super().__init__()
+        self.conv_block_1 = nn.Conv2d()
