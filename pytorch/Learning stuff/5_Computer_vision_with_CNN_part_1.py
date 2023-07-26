@@ -381,3 +381,5 @@ model_0_results = eval_model(model=model_0,
            accuracy_func=accuracy_fn)
 
 print(model_0_results)
+
+# continued in 5.2
