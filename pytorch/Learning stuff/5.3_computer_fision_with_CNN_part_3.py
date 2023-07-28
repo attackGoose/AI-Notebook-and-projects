@@ -97,6 +97,8 @@ test_data = datasets.FashionMNIST(
    target_transform=None
 )
 
+image, label = train_data[0]
+
 #other information to retrieve from the datasets
 class_names = train_data.classes
 
@@ -227,19 +229,20 @@ class FashionMNISTModelV2(nn.Module):
       #this will group and classify the results given by the previous 2 convolutional layers
       self.classifier = nn.Sequential(
          #since the image is in a matrix, the nn.flatten layer is needed to flatten everything onto one dimension/into a single vector
-         nn.Flatten(),
-         #since we don't know the in_features, we put 0s as placeholers for now
-         nn.Linear(in_features=hidden_units*0, #there's a trick to calculating this: 
+         nn.Flatten(), #this multiplies all dims of a matrix and turns it into a vector
+         #we multiply this by 7 because when we flatten the result of conv_block_2, we need to get the result of conv_block_2, which we can get through the print(result.shape)
+         #in the forward function as shown below
+         nn.Linear(in_features=hidden_units*7*7, #there's a trick to calculating this: 
                    out_features=output_shape)
       )
    
    def forward(self, x:torch.Tensor) -> torch.Tensor:
       x = self.conv_block_1(x)
-      #print(x.shape)
+      print(f"output shape of conv block 1: {x.shape}")
       x = self.conv_block_2(x)
-      #print(x.shape)
+      print(f"output shape of conv block 2: {x.shape}") #the shape is 7
       x = self.classifier(x)
-      #print(x.shape)
+      print(x.shape)
       return x
 
 model_2 = FashionMNISTModelV2(
@@ -256,7 +259,7 @@ torch.manual_seed(42)
 images = torch.randn(size=(32, 3, 64, 64)) #batch size, color channel, width, height
 test_image = images[0]
 
-print(f"image batch shape: {images.shape}\nsingle image shape: {test_image.shape}\ntest image:\n {test_image[:10]}")
+print(f"image batch shape: {images.shape}\nsingle image shape: {test_image.shape}\ntest image:\n {test_image[:5]}")
 
 
 #testing out a single convolutional layer: (for more information, refer to the interactive convolutional layer tool for visualizing a gui at: https://poloclub.github.io/cnn-explainer)
@@ -277,11 +280,12 @@ print(conv_output.shape)
 
 #putting it through MaxPool2d:
 
-max_pool_layer = nn.MaxPool2d(kernel_size=2) #(creates a 2x2 kernel)
+max_pool_layer = nn.MaxPool2d(kernel_size=2) # the higher this number is the more the tensor's dimensions will get compressed (ex: a [1, 10, 64, 64] -> [[1, 10, 32, 32]])
+# (creates a 2x2 kernel) mess around with these values to rediscover patterns
 
 test_image_through_conv = conv_layer(test_image.unsqueeze(dim=0))
 #seeing what the layer does to the data
-print(f"shape after going torhoguh conv_layer: {test_image_through_conv}")
+print(f"shape after going through conv_layer: {test_image_through_conv[:5]}")
 
 # passing image through max_pool_layer
 test_image_through_conv_and_max_pool = max_pool_layer(test_image_through_conv)
@@ -289,3 +293,48 @@ print(f"shape after going through both conv and max pool layer: {test_image_thro
 
 
 #timestamp: 18:03:05
+
+## visualizing it using a smaller tensor:
+torch.manual_seed(42)
+
+random_tensor = torch.randn(size=(1, 1, 2, 2)) #[batch size, color channels, height, width]
+print(f"random tensor: {random_tensor}\nshape of random tensor: {random_tensor.shape}")
+
+max_pool_layer = nn.MaxPool2d(kernel_size=2)
+
+max_pool_tensor = max_pool_layer(random_tensor)
+
+print(f"Max pool tensor: {max_pool_tensor}\nMax pool tensor shape: {max_pool_tensor.shape}")
+
+"""
+in summary: a convolutional layer compresses the image and then it can be passed through a ReLU layer, but then the MaxPool layer really compresses it and we use that data
+to draw conclusions from, as for how much it compresses and how it varies, it all depends on the kernel size, ourput_shape padding and stride
+
+this summary is shortened
+"""
+
+#visualizing the image we're passing into the model:
+plt.imshow(image.squeeze(), cmap="gray")
+plt.show()
+
+#testing the model to see if it works (seeing if all the shapes align)
+
+#creating a random image tensor to pass through:
+rand_image_tensor = torch.randn(size=(1, 28, 28))
+print(rand_image_tensor.shape)
+
+dummy_pred = model_2(rand_image_tensor.unsqueeze(dim=0).to(device=device))
+
+
+## setup loss function/eval metrics/optimizer
+
+loss_function = torch.nn.CrossEntropyLoss()
+
+optimizer = torch.optim.SGD(params=model_2.parameters(),
+                            lr=0.05)
+
+
+#training/testing:
+
+epochs = 10
+
