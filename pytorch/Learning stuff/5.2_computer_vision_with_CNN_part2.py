@@ -261,18 +261,4 @@ model_1_results = eval_model(model=model_1,
 print(model_1_results)
 
 
-
-
-### Building a Convolutional Neuro Network Model
-
-"""
-also, to see what's happening inside a CNN, see: https://poloclub.github.io/cnn-explainer
-"""
-
-class FashionMNISTModelV2(nn.Module):
-
-    """Model architecture that replicates the TinyVGG CNN as shown on the website linked above"""
-
-    def __init__(self):
-        super().__init__()
-        self.conv_block_1 = nn.Conv2d()
+##continued in part 3
