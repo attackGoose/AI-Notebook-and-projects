@@ -121,64 +121,67 @@ def train_step(model: torch.nn.Module,
                accuracy_fn,
                device: torch.device = device):
     
-    """Trains the model"""
+   """Trains the model using train_dataloader"""
 
-    train_loss, train_acc = 0, 0
+   train_loss, train_acc = 0, 0
     
-    #train mode
-    model.train()
+   #train mode
+   model.train()
 
-    #add a loop to loop through the training batches
-    for batch, (X, y) in enumerate(data_loader):
-        X, y = X.to(device), y.to(device)
+   #add a loop to loop through the training batches
+   for batch, (X, y) in enumerate(data_loader):
+      X, y = X.to(device), y.to(device)
 
-        y_pred = model(X)
+      y_pred = model(X)
 
-        #calculate the loss
-        loss = loss_func(y_pred, y)
-        train_loss += loss #accumulate train loss
-        train_acc += accuracy_fn(y_true=y,
+      #calculate the loss
+      loss = loss_func(y_pred, y)
+      train_loss += loss #accumulate train loss
+      train_acc += accuracy_fn(y_true=y,
                                  y_pred=y_pred.argmax(dim=1)) #logits -> prediction labels
         
-        optimizer.zero_grad()
+      optimizer.zero_grad()
 
-        loss.backward()
+      #the back propagation of the loss function works together with the gradient descent in optimizer.step()  to help the model learn/train
+      loss.backward()
 
-        optimizer.step()
+      optimizer.step()
 
-        if batch % 400 == 0:
-           print(f"looked at {batch * len(X)}/{len(data_loader.dataset)} samples")
+      if batch % 400 == 0:
+         print(f"looked at {batch * len(X)}/{len(data_loader.dataset)} samples")
 
-    train_loss /= len(data_loader)
-    train_acc /= len(data_loader)
+   train_loss /= len(data_loader)
+   train_acc /= len(data_loader)
 
-    print(f"Train Loss: {train_loss:5f} | Train Accuracy: {train_acc:2f}")
+   print(f"Train Loss: {train_loss:5f} | Train Accuracy: {train_acc:2f}")
 
 def test_step(model: torch.nn.Module,
               data_loader: DataLoader, #torch.utils.data.DataLoader
               loss_func: torch.nn.Module,
               accuracy_fn,
               device: torch.device = device):
+    
+   """tests the model using test_dataloader"""
    
-    test_loss, test_acc = 0, 0
+   test_loss, test_acc = 0, 0
 
-    #testing mode
-    model.eval()
-    with torch.inference_mode():
-        for batch, (X, y) in enumerate(data_loader):
+   #testing mode
+   model.eval()
+   with torch.inference_mode():
+      for batch, (X, y) in enumerate(data_loader):
 
-            test_pred = model(X)
+         test_pred = model(X)
             
-            loss = loss_func(test_pred, y)
+         loss = loss_func(test_pred, y)
 
-            test_loss += loss
-            test_acc += accuracy_fn(y_true=y,
-                                    y_pred=test_pred.argmax(dim=1))
+         test_loss += loss
+         test_acc += accuracy_fn(y_true=y,
+                                 y_pred=test_pred.argmax(dim=1))
 
 
-        test_loss /= len(data_loader)
-        test_acc /= len(data_loader)
-        print(f"Test Loss: {test_loss:5f} | Test Accuracy: {test_acc:2f}")
+      test_loss /= len(data_loader)
+      test_acc /= len(data_loader)
+      print(f"Test Loss: {test_loss:5f} | Test Accuracy: {test_acc:2f}")
 
 
 
@@ -328,7 +331,7 @@ dummy_pred = model_2(rand_image_tensor.unsqueeze(dim=0).to(device=device))
 
 ## setup loss function/eval metrics/optimizer
 
-loss_function = torch.nn.CrossEntropyLoss()
+loss_func = torch.nn.CrossEntropyLoss()
 
 optimizer = torch.optim.SGD(params=model_2.parameters(),
                             lr=0.05)
@@ -337,4 +340,15 @@ optimizer = torch.optim.SGD(params=model_2.parameters(),
 #training/testing:
 
 epochs = 10
+
+train_start_time = timer()
+
+for epoch in tqdm(range(epochs)):
+   train_step(model=model_2, data_loader=train_dataloader, loss_func=loss_func, optimizer=optimizer, accuracy_fn=accuracy_fn, device=device)
+
+
+
+train_end_time = timer()
+
+print_train_time(start=train_start_time, end=train_end_time, device=device)
 
