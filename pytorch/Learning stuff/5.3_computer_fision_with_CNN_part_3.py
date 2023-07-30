@@ -481,3 +481,39 @@ plt.show()
 
 
 ## creating/plotting a creating matrix:
+
+"""
+see documentation at https://torchmetrics.readthedocs.io/en/stable/ under classification on the left side bar
+
+steps: 
+1. (done) make predictions with the trained model on the datasets
+2. make a confusion matrix (use a confusion matrics to check for the areas it got wrong and try to adjust those areas) 
+ Link: (https://torchmetrics.readthedocs.io/en/stable/classification/confusion_matrix.html) torchmetrics.ConfusionMatrix
+3. plot the confusion matrix using 'mlxtend.plotting' - http://rasbt.github.io/mlxtend/user_guide/plotting/plot_confusion_matrix/
+"""
+
+#making predictions again to get data to put into the confusion matrix:
+y_preds = []
+
+model_2.eval()
+with torch.inference_mode():
+   for X, y in tqdm(test_dataloader, desc="Making Predictions..."): #desc = descriptions
+      #send data and target to target device
+      X = X.to(device)
+      y = y.to(device)
+
+      y_logit = model_2(X).to(device)
+
+      y_pred = torch.softmax(y_logit.squeeze(), dim=0).argmax(dim=0)
+      
+      y_preds.append(y_pred.cpu())
+
+y_preds_tensor = torch.cat(y_preds) #turns the list of predictions into a single tensor (cat = concatenate idk how to spell)
+print(y_preds_tensor[:10])
+
+
+#making a confusion matrix
+import mlxtend
+from torchmetrics import ConfusionMatrix
+
+##timestamp: 19:19:37
