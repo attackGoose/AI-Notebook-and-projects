@@ -378,7 +378,7 @@ except:
 
    print(f"saving to: {MODEL_SAVE_PATH}")
    torch.save(obj=model_2.state_dict(),
-            f=MODEL_SAVE_PATH)
+              f=MODEL_SAVE_PATH)
 
 #evaluating the model:
 model_2_eval = eval_model(model=model_2,
@@ -504,16 +504,60 @@ with torch.inference_mode():
 
       y_logit = model_2(X).to(device)
 
-      y_pred = torch.softmax(y_logit.squeeze(), dim=0).argmax(dim=0)
+      y_pred = torch.softmax(y_logit.squeeze(), dim=1).argmax(dim=1)
       
       y_preds.append(y_pred.cpu())
 
 y_preds_tensor = torch.cat(y_preds) #turns the list of predictions into a single tensor (cat = concatenate idk how to spell)
-print(y_preds_tensor[:10])
+print(y_preds_tensor.shape)
 
 
-#making a confusion matrix
+#plotting a confusion matrix
 import mlxtend
 from torchmetrics import ConfusionMatrix
+from mlxtend.plotting import plot_confusion_matrix
 
-##timestamp: 19:19:37
+
+#setup confusion matrix instance and comparing predictions to targets
+confmat = ConfusionMatrix(num_classes=len(class_names), task="multiclass")
+confmat_tensor = confmat(preds=y_preds_tensor, 
+                         target=test_data.targets) #targets = labels
+
+print(confmat_tensor)
+
+#plotting the confusion matrix using mlxtend
+fig, ax = plot_confusion_matrix(
+   conf_mat=confmat_tensor.numpy(), #matplot lib = numpy
+   class_names=class_names,
+   figsize=(10, 7)
+)
+
+plt.show()
+
+# a confusion matrix is one of the most powerful ways to visualize your model's predictions and torchmetrics.ConfusionMatrics is a great way to do that
+
+
+#using the saved model for practice
+
+#create a new instance
+loaded_model_2 = FashionMNISTModelV2(input_shape=1,
+                                     hidden_units=10,
+                                     output_shape=len(class_names))
+
+loaded_model_2.load_state_dict(torch.load(f=MODEL_SAVE_PATH))
+
+#send model to target device:
+loaded_model_2.to(device=device)
+
+#coparing results to see if the loaded model and the original model are the same (checking if it saved properly)
+
+loaded_model_2_eval = eval_model(model=loaded_model_2,
+                                 data_loader=test_dataloader,
+                                 loss_func=loss_func,
+                                 accuracy_func=accuracy_fn,
+                                 device=device)
+
+#check is the model results are close to each other:
+torch.isclose(model_2_eval["model_loss"], loaded_model_2_eval["model_loss"], atol=1e-02) #atol is the tolerance level
+
+#19:38:00 - summary of unit 5 and extra practices and extracerriculum, its also available at https://www.learnpytorch.io/03_pytorch_computer_vision/ 
