@@ -27,6 +27,7 @@ else:
       f.write(request.content)
 
 from helper_functions import accuracy_fn
+import random
 
 from tqdm.auto import tqdm
 
@@ -241,11 +242,11 @@ class FashionMNISTModelV2(nn.Module):
    
    def forward(self, x:torch.Tensor) -> torch.Tensor:
       x = self.conv_block_1(x)
-      print(f"output shape of conv block 1: {x.shape}")
+      #print(f"output shape of conv block 1: {x.shape}")
       x = self.conv_block_2(x)
-      print(f"output shape of conv block 2: {x.shape}") #the shape is 7
+      #print(f"output shape of conv block 2: {x.shape}") #the shape is 7
       x = self.classifier(x)
-      print(x.shape)
+      #print(x.shape)
       return x
 
 model_2 = FashionMNISTModelV2(
@@ -336,19 +337,147 @@ loss_func = torch.nn.CrossEntropyLoss()
 optimizer = torch.optim.SGD(params=model_2.parameters(),
                             lr=0.05)
 
+MODEL_PATH = Path("models")
+MODEL_PATH.mkdir(parents=True, exist_ok=True)
+MODEL_NAME = "CNN_FashionMNIST_Model.pth"
 
-#training/testing:
+MODEL_SAVE_PATH = MODEL_PATH / MODEL_NAME
 
-epochs = 10
+#loads the model state_dict if its available, if not then it trains a new model
+try:
+   model_2.load_state_dict(torch.load(f=MODEL_SAVE_PATH))
+except:
+   #training/testing:
 
-train_start_time = timer()
+   epochs = 5
 
-for epoch in tqdm(range(epochs)):
-   train_step(model=model_2, data_loader=train_dataloader, loss_func=loss_func, optimizer=optimizer, accuracy_fn=accuracy_fn, device=device)
+   train_start_time_model_2 = timer()
+
+   for epoch in tqdm(range(epochs)): #note that the tqdm() helps keep track of the progress
+      print(f"Epoch: {epoch}\n----------")
+
+      train_step(model=model_2, 
+               data_loader=train_dataloader, 
+               loss_func=loss_func, 
+               optimizer=optimizer, 
+               accuracy_fn=accuracy_fn, 
+               device=device)
+
+      test_step(model=model_2,
+               data_loader=test_dataloader,
+               loss_func=loss_func,
+               accuracy_fn=accuracy_fn,
+               device=device)
+
+   train_end_time_model_2 = timer()
+
+   total_train_time_model_2 = print_train_time(start=train_start_time_model_2, end=train_end_time_model_2, device=device)
+   print(f"Total Train time for the model: {total_train_time_model_2}")
+
+   #saving the model:
+
+   print(f"saving to: {MODEL_SAVE_PATH}")
+   torch.save(obj=model_2.state_dict(),
+            f=MODEL_SAVE_PATH)
+
+#evaluating the model:
+model_2_eval = eval_model(model=model_2,
+                          data_loader=test_dataloader,
+                          loss_func=loss_func,
+                          accuracy_func=accuracy_fn,
+                          device=device)
+
+print(model_2_eval)
+
+
+## to compare the results of this model to your other models, you could use pandad.DataFrame([models_here]) and also add a time column (compare_results["training_time"]) = []
+## usually its good to compare the results of your models, although i can't do it because i split my models up into different files because it would take too long to run
 
 
 
-train_end_time = timer()
+## making visual predictions:
 
-print_train_time(start=train_start_time, end=train_end_time, device=device)
+def make_predictions(model: torch.nn.Module,
+                     data: list,
+                     device: torch.device = device):
+   pred_probs = []
+   model.to(device=device)
+   model.eval()
+   with torch.inference_mode():
+      for sample in data:
+         # prepares the data (gives the sample a extra dimension and changing its device to the proper device)
+         sample = torch.unsqueeze(sample, dim=0).to(device=device) 
 
+         #forward pass
+         pred_logits = model(sample)
+
+         #prediction probability (logit -> pred probs)
+         pred_prob = torch.softmax(pred_logits.squeeze(), dim=0) # to get the pred labels you would pass this value through torch.argmax() to get the position of the largest %
+
+         # get prediction_prob off the GPU for matplotlib stuff
+         pred_probs.append(pred_prob.cpu())
+
+   #stacks the pred_probs to turn the list into a tensor
+   return torch.stack(pred_probs)
+
+random.seed(42)
+test_samples = []
+test_labels = []
+
+for sample, label in random.sample(list(test_data), k=9): #we're randomly sampling 9 samples, taking a sample image ([color ch., width, height], label)
+   test_samples.append(sample)
+   test_labels.append(label)
+
+#note theat the sample images might have to be squeezed since they have a batch dimension
+
+print(test_samples[random.randint(0, len(test_samples)-1)].shape)
+
+plt.imshow(test_samples[random.randint(0, len(test_samples)-1)].squeeze(), cmap="gray")
+plt.title(class_names[test_samples.index(test_samples[random.randint(0, len(test_samples)-1)])])
+plt.show()
+
+## making predictions:
+
+pred_probs = make_predictions(model=model_2,
+                              data=test_samples,
+                              device=device)
+
+print(pred_probs[:, :2]) #these are all prediction probs, we can use argmax to get the prediction labels since we're using softmax as our activation function
+
+pred_classes = pred_probs.argmax(dim=1)
+print(pred_classes)
+
+##plotting the predictions
+
+plt.figure(figsize=(9, 9))
+nrows = 3
+ncols = 3
+
+for index, sample in enumerate(test_samples):
+   #create subplot
+   plt.subplot(nrows, ncols, index+1)
+
+   #plot the target image:
+   plt.imshow(sample.squeeze(), cmap="gray")
+
+   #finding prediction labels:
+   pred_label = class_names[pred_classes[index]]
+
+   truth_label = class_names[test_labels[index]]
+
+   title_text = f"Prediction: {pred_label} | Truth: {truth_label}"
+
+   #check equality between prediction and truth and change color of title text:
+   if pred_label == truth_label:
+      title_color = "g" #green text if its equal
+      plt.title(label=title_text, fontsize=10, c=title_color)
+   else:
+      title_color = "r" #red text if its not equal
+      plt.title(label=title_text, fontsize=10, c=title_color)
+   
+   plt.axis(False)
+
+plt.show()
+
+
+## creating/plotting a creating matrix:
