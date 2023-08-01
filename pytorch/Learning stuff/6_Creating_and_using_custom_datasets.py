@@ -146,7 +146,7 @@ steps to use the image with pytorch:
 
 #transforming data using torchvision.transforms
 data_transform = transforms.Compose([
-    #resizing the imgae
+    #resizing the image so that we always know the size of what we're working with (to make stuff easier to use)
     transforms.Resize(size=(64, 64)),
     #flip the imgaes randomly on the horizontal 
     transforms.RandomHorizontalFlip(p=0.5),
@@ -206,3 +206,63 @@ print(train_data, test_data)
 #the above method will produce a torch dataset
 
 #timestamp: 21:05:40
+#getting the classes of the training data
+class_names = train_data.classes
+print(class_names)
+
+#its also possible to get the classes and their indexes in a dictonary:
+class_dict = train_data.class_to_idx
+print(class_dict)
+
+#checking the length of our data:
+print(len(train_data), len(test_data))
+
+#viewing our labels:
+print(train_data.targets)
+
+#viewing a single sample 
+print(train_data.samples[0])
+
+# use indexing on the train_data Dataset to get a single image and its label:
+img, label = train_data[0][0], train_data[0][1]
+
+print(f"imge tensor:\n{img}")
+print(f"image shape: {img.shape}")
+print(f"image datatype: {img.dtype}")
+print(f"image Label: {label}")
+print(f"label datatype: {type(label)}")
+
+#plotting the image using matplotlib
+
+img_permuted = img.permute(1, 2, 0) #matplotlib works with [height, width, color channels] so we have to convert it to their format
+
+print(f"original image: {img.shape} -> [color channels, height, width]")
+print(f"Permuted image: {img_permuted.shape} -> [height, width, color channels]")
+
+#plotting the image:
+plt.figure(figsize=(10, 7))
+plt.imshow(img_permuted)
+plt.axis(False)
+plt.title(class_names[label], fontsize=14)
+
+
+#creating the dataloaders: (creating iterables of custom batches of data, which is good for our memory and overall training), this can be used for all types of data
+BATCH_SIZE = 1
+
+train_dataloader = DataLoader(dataset=train_data,
+                              batch_size=BATCH_SIZE,
+                              num_workers=1, # os.cpu_count(), #this is used to find out how many cpu's we have to maximize the cpu usage 
+                              shuffle=True)
+
+test_dataloader = DataLoader(dataset=test_data,
+                             batch_size=BATCH_SIZE,
+                             num_workers=1,
+                             shuffle=False)
+
+print(train_dataloader, test_dataloader)
+
+img, label = next(iter(train_dataloader))
+
+# Batch size will now be 1, try changing the batch_size parameter above and see what happens
+print(f"Image shape: {img.shape} -> [batch_size, color_channels, height, width]")
+print(f"Label shape: {label.shape} -> [batch_size, color_channels, height, width]")
