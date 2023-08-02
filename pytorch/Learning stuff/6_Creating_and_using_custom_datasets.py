@@ -25,6 +25,7 @@ import requests
 import zipfile 
 from pathlib import Path
 
+from typing import Tuple, Dict, List
 #setup path to a data folder
 data_path = Path("data")
 image_path = data_path / "pizza_steak_sushi"
@@ -62,6 +63,10 @@ def walk_through_dir(dir_path):
 train_dir = image_path / "train"
 test_dir = image_path / "test"
 
+import random
+from PIL import Image
+
+from torch.utils.data import Dataset
 
 #standard image classification data format:  (found on torchvision documentation)
 """
@@ -104,9 +109,6 @@ steps for what to do next:
 4. open the image with "pillow" for image processing/manupulation
 5. show image and print metadata
 """
-
-import random
-from PIL import Image
 
 #setting random seed:
 random.seed(42)
@@ -190,7 +192,7 @@ plt.show()
 """
 options for loading data:
 
-loading images using "ImageFolder" (torchvision.datasets.ImageFolder)
+1. loading images using "ImageFolder" (torchvision.datasets.ImageFolder)
 """
 
 train_data = datasets.ImageFolder(root=train_dir, #it will look at this for its label/target
@@ -261,8 +263,110 @@ test_dataloader = DataLoader(dataset=test_data,
 
 print(train_dataloader, test_dataloader)
 
-img, label = next(iter(train_dataloader))
+#img, label = next(iter(train_dataloader))
 
 # Batch size will now be 1, try changing the batch_size parameter above and see what happens
-print(f"Image shape: {img.shape} -> [batch_size, color_channels, height, width]")
-print(f"Label shape: {label.shape} -> [batch_size, color_channels, height, width]")
+#print(f"Image shape: {img.shape} -> [batch_size, color_channels, height, width]")
+#print(f"Label shape: {label.shape} -> [batch_size, color_channels, height, width]")
+
+#there was an error with the next(iter(train_dataloader)) that I don't know how to solve
+
+### everything above was learning more about our custom dataset
+
+"""
+Option 2: (not using a preexisting class like ImageFolder)
+
+we would want to: 1. load images from the files, 2. get the class names from the dataset, 3. get classes as dictonaries from the dataset
+
+pros and cons of building a custom dataset:
+pro: custom data to train models, and not being limited to pre-built datasets, and can have a dataset of almost anything
+con: the data might not work, and using a custom dataset requires more effort/code which could be more prone to errors or performance issues
+"""
+
+#building on torch.utils.data.Dataset (all custom datasets in pytorch often subclass torch.utils.data.Dataset) (https://pytorch.org/docs/stable/data.html#torch.utils.data.Dataset)
+
+#instance of torchvision.datasets.ImageFolder():
+print(train_data.classes, train_data.class_to_idx) #being able to access both the classes, and the classes and index
+
+
+# getting the class names from the target directory:
+
+#setting up target directory path
+target_dir = train_dir
+print(f"Target directory: {target_dir}")
+
+#getting class names from target directory
+class_names_list = sorted([entry.name for entry in list(os.scandir(target_dir))])
+print(class_names_list)
+
+#functionizing the above method
+def find_classes(directory: str) -> Tuple[List[str], Dict[str, int]]: #this returns a tuple of a list of strings, and a dictionary with strings mapped to integers
+                                                                        #this is made possible using the typing module
+    """Finds the class folder names in a target directory"""
+
+    #get class names by scanning target directory
+    classes = sorted([entry.name for entry in list(os.scandir(directory)) if entry.is_dir()])
+
+    #raise an error if class would not be found
+    if not classes:
+        raise FileNotFoundError(f"Couldn't find any classes in {directory}, please check file structure")
+    
+
+    classes_to_idx = {class_name: index for index, class_name in enumerate(classes)} #maps our class names to an integer
+
+    return classes, classes_to_idx
+
+#subclassing torch.utils.data.dataset to create our own custom dataset: (https://pytorch.org/docs/stable/data.html#torch.utils.data.Dataset)
+"""
+steps to create a custom dataset:
+
+1. subclass torch.utils.data.Dataset
+2. initialize/init the class with a target directory (the directory we're getting data from) and a transform if we would like to transform our data
+3. create several attributes:
+    paths - paths of our images,
+    transform - the transform we'd like to use on our data
+    classes - list of our target classes
+    class_to_idx - a dict of our target classes mapped to their integet label
+"""
+
+#this replicates the functionality of a existing thing
+class CustomImageFolder(Dataset):
+    #initializing the custom dataset
+    def __init__(self, target_dir: str, transform=None):
+        
+        #create class attributes
+        self.paths = list(Path(target_dir).glob("*/*.jpg"))
+        #setup transform
+        self.transform = transform
+        #create classes and class_to_idx attribute
+        self.classes, self.class_to_idx = find_classes(target_dir)
+    
+    def load_images(self, index: int) -> Image.Image: #this is a PIL thing (from PIL import Image)
+        "Opens an image via path and returns it"
+        image_path = self.paths[index]
+        return Image.open(image_path)
+    
+    #override __len__()
+    def __len__(self) -> int:
+        "returns the total amount of samples/image paths"
+        return len(self.paths)
+    
+    #override __getitem__() method: (required if we want to subclass torch.utils.data.Dataset) (if we pass in an index we want to get that particular item)
+    def __getitem__(self, index: int) -> Tuple[torch.Tensor, int]: #this is the same type of data that gets returned on our training data
+        #returns one sample of data, data and label (X, y)
+        img = self.load_images(index)
+        class_name = self.paths[index].parent.name
+        class_idx = self.class_to_idx[class_name]
+
+        #transform if necessary:
+        if self.transform:
+            return self.transform(img), class_idx #return data, label (X, y)
+        else:
+            return img, class_idx #return untransformed img and label
+        
+#comparing this custom dataset class to the original ImageFolder class:
+
+#creating a transform:
+train_transform = transforms.Compose([
+    transforms.Resize()
+])
