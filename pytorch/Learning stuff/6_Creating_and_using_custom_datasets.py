@@ -329,7 +329,7 @@ steps to create a custom dataset:
     class_to_idx - a dict of our target classes mapped to their integet label
 """
 
-#this replicates the functionality of a existing thing
+#this replicates the functionality of a existing thing, this can be used to add additional functionalities but isnt' always needed
 class CustomImageFolder(Dataset):
     #initializing the custom dataset
     def __init__(self, target_dir: str, transform=None):
@@ -368,5 +368,96 @@ class CustomImageFolder(Dataset):
 
 #creating a transform:
 train_transform = transforms.Compose([
-    transforms.Resize()
+    transforms.Resize(size=(64, 64)),
+    transforms.RandomHorizontalFlip(p=0.5),
+    transforms.ToTensor()
 ])
+
+#skipping data argumentation for the test data, only argmenting the training data
+test_transform = transforms.Compose([
+    transforms.Resize(size=(64, 64)),
+    transforms.ToTensor()
+])
+
+
+#testing ImageFolderCustom:
+custom_train_data = CustomImageFolder(target_dir=train_dir,
+                                      transform=train_transform)
+
+custom_test_data = CustomImageFolder(target_dir=test_dir,
+                                     transform=test_transform)
+
+
+##NOTE train_data and test_data is using ImageFolder(), custom_train_data and custom_test_data is using the CustomImageFolder()
+print(train_data.classes, custom_train_data.classes)
+print(train_data.classes == custom_train_data.classes)
+print(test_data.classes == custom_test_data.classes)
+
+
+#displaying random images
+def display_random_images(dataset: Dataset,
+                          classes: List[str] = None,
+                          number_of_images: str = 10,
+                          display_shape: bool = True,
+                          seed: int = None):
+    """read the name, to show the image remember to do plt.show()"""
+
+    #adjust display if N is too high
+    if number_of_images > 10:
+        number_of_images = 10
+        display_shape = False
+        print(f"For display purposes, number_of_images shouldn't be larger than 10, setting n to 10 and removing shape display")
+    
+    if seed:
+        random.seed(seed)
+    
+    #getting random samples
+    random_sample_index = random.sample(range(len(dataset)), k=number_of_images) #between 0 and the length of the dataset its going to take n images from it
+
+    plt.figure(figsize=(10, 7))
+
+    #looping through the random samples and plotting them
+    for i, sample in enumerate(random_sample_index):
+        targ_image, targ_label = dataset[sample][0], dataset[sample][1] #the 0th place is the target image and 1st plac eis the target ige
+
+        targ_image_adjust = targ_image.permute(1, 2, 0) #[color channels, height, width] -> [height, width, color channels]
+
+        plt.subplot(1, number_of_images, i+1)
+        plt.imshow(targ_image_adjust)
+        plt.axis(False)
+        if classes:
+            title = f"Class: {classes[targ_label]}"
+            if display_shape:
+                title += f"\nShape: {targ_image_adjust.shape}"
+        plt.title(title)
+
+display_random_images(dataset=train_data,
+                      number_of_images=5,
+                      classes=class_names,
+                      seed=None)
+plt.show()
+
+
+#turning our custom dataset into a dataloader
+BATCH_SIZE = 1
+
+custom_train_dataloader = DataLoader(dataset=custom_train_data,
+                                     batch_size=BATCH_SIZE,
+                                     num_workers=0, 
+                                     shuffle=True)
+
+custom_test_dataloader = DataLoader(dataset=custom_test_data,
+                                     batch_size=BATCH_SIZE,
+                                     num_workers=os.cpu_count(),
+                                     shuffle=False)
+
+print(custom_train_dataloader, custom_test_dataloader)
+
+
+#transforms: it can be used for both transforming and argmenting images for increasing the diversity of the dataset
+"""
+data augmentation: artificially adding diversity into the training data 
+in the case of image data, this could mean applying various image transformations into already existing igmes
+"""
+
+#using trivialaugment
