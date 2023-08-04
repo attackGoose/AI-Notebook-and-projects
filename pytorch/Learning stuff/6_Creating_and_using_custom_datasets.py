@@ -163,6 +163,9 @@ def plot_transformed_images(image_paths:list, transform, n=3, seed=None):
     """
     selects random images from a path of images and loads/transforms them then plots the original v transformed version
     """
+    if len(image_paths) < n or n <= 0:
+        print(f"{n} is an invalid amount, please try a different number")
+        return "n is a invalid number"
     if seed:
         random.seed(seed)
     random_image_path = random.sample(image_paths, k=n)
@@ -458,6 +461,37 @@ print(custom_train_dataloader, custom_test_dataloader)
 """
 data augmentation: artificially adding diversity into the training data 
 in the case of image data, this could mean applying various image transformations into already existing igmes
+link for further info: https://pytorch.org/vision/stable/auto_examples/plot_transforms.html#trivialaugmentwide
 """
 
 #using trivialaugment
+train_transform = transforms.Compose([
+    transforms.Resize(size=(224, 224)),
+    transforms.TrivialAugmentWide(num_magnitude_bins=31), #a number from 0 to 31 that represents the intensity of the augmentation you want to have (how much the image is changed)
+    transforms.ToTensor()
+])
+
+test_transform = transforms.Compose([
+    transforms.Resize(size=(224, 224)),
+    transforms.TrivialAugmentWide(num_magnitude_bins=31),
+    transforms.ToTensor()
+])
+
+## there's also the question of "what transform should I use for my data," and the answer to which is to simply try out some transforms
+
+#setting up the path for the new transformed images (and reusing variable names since i can't come up with any new ones)
+image_path_list = list(image_path.glob("*/*/*.jpg"))
+print(image_path_list[:10])
+
+#visualizing the augmented data to see the artificially transformed data
+plot_transformed_images(image_paths=image_path_list,
+                        transform=train_transform,
+                        n=3,
+                        seed=None)
+
+plt.show()
+
+
+#making the model to use the data on: (tinyVGG without augmentation first) link to the CNN explainer website: https://poloclub.github.io/cnn-explainer
+
+#continued in 6.1
