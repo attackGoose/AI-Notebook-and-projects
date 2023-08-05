@@ -177,7 +177,7 @@ summary(model=model_0, input_size=(BATCH_SIZE, 3, 64, 64)) #input size is the th
 #in its internals, its doing a forward pass of the input size through the model you give it
 
 #side note: a parameter is a adjustable weight within the model, and this model, according to summary, has 8000 parameters, which is considered small compared to modern models
-from Functionizing_training_code import train_step_multiclass, test_step_multiclass
+from Functionizing_training_code import train_step_multiclass, test_step_multiclass, epoch_loop_train
 from helper_functions import accuracy_fn
 
 #training and testing the model:
