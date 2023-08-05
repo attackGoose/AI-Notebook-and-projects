@@ -38,3 +38,4 @@ plt.show()
 
 plt.plot(sigmoid(A))
 plt.show()
+

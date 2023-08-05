@@ -172,3 +172,4 @@ print(dummy_logit)
 #using torchinfo to print out a summary of the model (aka an idea of the shapes of the model so we don't have to print them out manually in the model)
 from torchinfo import summary
 
+#timestamp: 23:12:09
