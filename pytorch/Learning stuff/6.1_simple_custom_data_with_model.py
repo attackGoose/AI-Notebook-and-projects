@@ -6,6 +6,7 @@ from torchvision import datasets, transforms
 from torch.utils.data import DataLoader
 
 device = "cuda" if torch.cuda.is_available() else "cpu"
+from tqdm.auto import tqdm
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -144,11 +145,11 @@ class TinyVGG(nn.Module):
         )
     
     def forward(self, x: torch.Tensor) -> torch.Tensor:
-        x = self.conv_block_1(x)
-        print(x.shape)
-        x = self.conv_block_2(x)
-        print(x.shape) #this will tell us 
-        return self.classifier(x)
+        #x = self.conv_block_1(x)
+        #print(x.shape)
+        #x = self.conv_block_2(x)
+        #print(x.shape) #this will tell us 
+        return self.classifier(self.conv_block_2(self.conv_block_1(x)))
     
 
 #opperator fusion: the most important optimization in deep learning compilers: https://horace.io/brrr_intro.html there's a good definition of it in here, do ctrl g and search
@@ -172,4 +173,31 @@ print(dummy_logit)
 #using torchinfo to print out a summary of the model (aka an idea of the shapes of the model so we don't have to print them out manually in the model)
 from torchinfo import summary
 
-#timestamp: 23:12:09
+summary(model=model_0, input_size=(BATCH_SIZE, 3, 64, 64)) #input size is the the size of the input that you're putting into your model
+#in its internals, its doing a forward pass of the input size through the model you give it
+
+#side note: a parameter is a adjustable weight within the model, and this model, according to summary, has 8000 parameters, which is considered small compared to modern models
+from Functionizing_training_code import train_step_multiclass, test_step_multiclass
+from helper_functions import accuracy_fn
+
+#training and testing the model:
+loss_func = torch.nn.CrossEntropyLoss()
+
+optimizer = torch.optim.SGD(params=model_0.parameters,
+                            lr=0.05)
+
+epochs = 3
+
+for epoch in tqdm(range(epochs)):
+    train_step_multiclass(model=model_0,
+                        data_loader=train_dataloader_simple,
+                        loss_func=loss_func,
+                        optimizer=optimizer,
+                        device=device)
+    
+    test_step_multiclass(model=model_0,
+                         data_loader=test_dataloader_simple,
+                         loss_func=loss_func,
+                         optimizer=optimizer,
+                         device=device)
+    
