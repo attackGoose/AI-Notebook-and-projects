@@ -181,23 +181,24 @@ from Functionizing_training_code import train_step_multiclass, test_step_multicl
 from helper_functions import accuracy_fn
 
 #training and testing the model:
+#creating a new model instance:
+model_0 = TinyVGG(input_shape=3,
+                  hidden_units=10,
+                  output_shape=len(class_names)).to(device=device)
+
 loss_func = torch.nn.CrossEntropyLoss()
 
-optimizer = torch.optim.SGD(params=model_0.parameters,
+print(f"Model parameters: {model_0.parameters()}")
+optimizer = torch.optim.SGD(params=model_0.parameters(),
                             lr=0.05)
 
-epochs = 3
+NUM_EPOCHS = 5
 
-for epoch in tqdm(range(epochs)):
-    train_step_multiclass(model=model_0,
-                        data_loader=train_dataloader_simple,
-                        loss_func=loss_func,
-                        optimizer=optimizer,
-                        device=device)
-    
-    test_step_multiclass(model=model_0,
-                         data_loader=test_dataloader_simple,
-                         loss_func=loss_func,
-                         optimizer=optimizer,
-                         device=device)
-    
+epoch_loop_train(model=model_0,
+                 train_dataloader=train_dataloader_simple,
+                 test_dataloader=test_dataloader_simple,
+                 loss_func=loss_func,
+                 optimizer=optimizer,
+                 device=device,
+                 epochs=NUM_EPOCHS)
+

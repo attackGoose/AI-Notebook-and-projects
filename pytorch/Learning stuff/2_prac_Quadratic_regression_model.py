@@ -73,7 +73,8 @@ test_model = QuadraticRegressionModel()
 #loss function:
 loss_func = nn.L1Loss()
 
-#optimizer:
+#optimizer: .parameter() is not .parameter
+print(f"model parameters: {test_model.parameters}")
 optimizer = torch.optim.SGD(test_model.parameters(), lr=0.02)
 
 #data collection for plotting
