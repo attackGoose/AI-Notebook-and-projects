@@ -189,16 +189,61 @@ model_0 = TinyVGG(input_shape=3,
 loss_func = torch.nn.CrossEntropyLoss()
 
 print(f"Model parameters: {model_0.parameters()}")
-optimizer = torch.optim.SGD(params=model_0.parameters(),
-                            lr=0.05)
+optimizer = torch.optim.Adam(params=model_0.parameters(),
+                            lr=0.001) #this is the default value
 
 NUM_EPOCHS = 5
 
-epoch_loop_train(model=model_0,
-                 train_dataloader=train_dataloader_simple,
-                 test_dataloader=test_dataloader_simple,
-                 loss_func=loss_func,
-                 optimizer=optimizer,
-                 device=device,
-                 epochs=NUM_EPOCHS)
+from timeit import default_timer as timer
+start_time = timer()
+
+#training model 0
+model_0_results = epoch_loop_train(model=model_0,
+                                train_dataloader=train_dataloader_simple,
+                                test_dataloader=test_dataloader_simple,
+                                loss_func=loss_func,
+                                optimizer=optimizer,
+                                device=device,
+                                epochs=NUM_EPOCHS)
+
+end_time = timer()
+
+total_model_0_train_time = end_time - start_time
+
+print(f"Model 0 results: {model_0_results}")
+
+print(f"Total train time: {total_model_0_train_time:3f}")
+
+#checking model result keys
+print(model_0_results.keys())
+#plotting the loss curve to trach the model's progress
+def plot_loss_curves(results: Dict[str, List[float]]): #the model takes in a dictionary that contains a string that has a list of floats as its value
+    """Plot training curve of a result dictionary"""
+    loss = results["train_loss"]
+    test_loss = results["test_loss"]
+
+    accuracy = results["train_acc"]
+    test_accuracy = results["test_acc"]
+
+    num_epochs = range(len(results["train_loss"]))
+
+    plt.figure(figsize=(15, 7))
+
+    plt.subplot(1, 2, 1) #1 row, 2 cols, and index 1
+    plt.plot(num_epochs, loss, label="train_loss")
+    plt.plot(num_epochs, test_loss, label="test_loss")
+    plt.title("Loss")
+    plt.xlabel("Epochs")
+    plt.legend()
+
+    plt.subplot(1, 2, 1)
+    plt.plot(num_epochs, accuracy, label="train_acc")
+    plt.plot(num_epochs, test_accuracy, label="test_acc")
+    plt.title("Accuracy")
+    plt.xlabel("Epochs")
+    plt.legend()
+
+
+plot_loss_curves(model_0_results)
+plt.show()
 

@@ -35,7 +35,7 @@ def train_step_multiclass(model: torch.nn.Module,
         optimizer.step()
 
         #accumulate the train loss and train acc per batch
-        train_loss += loss 
+        train_loss += loss.item()
         train_acc += ((y_pred_label == y).sum().item()/len(y_pred_label)) #original: (y_pred == y).sum().item()/len(y_pred)
         #if the y pred is = to y, we take the total amount of that through sum, then turn it into an item, and device it by the length of y_pred to get the accuracy
 
@@ -46,7 +46,7 @@ def train_step_multiclass(model: torch.nn.Module,
     train_loss /= len(data_loader)
     train_acc /= len(data_loader)
 
-    return f"train loss: {train_loss:5f} | Train acc: {train_acc:2f}"
+    return train_loss, train_acc
 
 def test_step_multiclass(model: torch.nn.Module,
                          dataloader: DataLoader,
@@ -61,6 +61,7 @@ def test_step_multiclass(model: torch.nn.Module,
     with torch.inference_mode():
         for X, y in dataloader:
             X, y = X.to(device), y.to(device)
+
             #forward pass
             test_logit = model(X) 
             test_pred = torch.softmax(test_logit, dim=1).argmax(dim=1) #the softmax isn't necessary but its there for completeness
