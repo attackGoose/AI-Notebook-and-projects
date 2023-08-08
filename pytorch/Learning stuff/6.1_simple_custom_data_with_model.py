@@ -247,3 +247,95 @@ def plot_loss_curves(results: Dict[str, List[float]]): #the model takes in a dic
 plot_loss_curves(model_0_results)
 plt.show()
 
+# our model is underfitting, severely underfitting
+# what an ideal loss curve should look like: https://developers.google.com/machine-learning/testing-debugging/metrics/interpretic 
+# a loss curve is one of the best ways to troubleshoot a model
+
+#how to deal iwth underfitting and overfitting: timestamp: 1:00:05:01, course: https://www.youtube.com/watch?v=V_xro1bcAuA
+
+"""
+ways to deal with overfitting:
+
+1. getting more data: gives the model more chances to learn patterns between the samples, can be done through getting more data, augmenting existing data or getting better data
+    this increased diversity hopefully forces the model to learn more generalizable patterns
+2. use transfer learning on another pre-built working model (refer to torchvision.models library for vision problems, and etc for their specific use cases)
+3. simplify your model
+4. use learning rate decay (how much the optimizer updates the model's weights every step) to prevent the model from yea (refer to torch.optim.lr_scheduler to adjust learning 
+    rate overtime) 
+5. there's also early stopping, where you save your model where it performed the best rather than saving the model at the latest step
+
+ways to deal with underfitting:
+
+1. adding more layers/units to your model (opposite of solving overfitting)
+2. tweaking the learning rate (same as overfitting)
+3. train for longer, 
+4. use transfer learning on another working model
+5. use less regularization (regulate the model's stuff less, regularization is used to prevent overfitting (includes all steps in overfitting), but when overdone it causes this)
+
+machine learning is all about balancing between underfitting and underfitting and is a very prevalent area of machine learning research
+"""
+
+# changing the model data to prevent underfitting: TinyVGG w/ data augmentation (using trivial augment)
+train_transform_trivial = transforms.Compose([
+    transforms.Resize(size=(64, 64)),
+    transforms.TrivialAugmentWide(num_magnitude_bins=31), #the 31 represents the magnitude of augmentation
+    transforms.ToTensor()
+])
+
+test_transform_simple = transforms.Compose([
+    transforms.Resize(size=(64, 64)),
+    transforms.ToTensor()
+])
+
+#creating the dataset and dataloaders using the transforms
+train_data_augmented = datasets.ImageFolder(root=train_dir,
+                                            transform=train_transform_trivial)
+
+test_data_simple = datasets.ImageFolder(root=test_dir, 
+                                           transform=test_transform_simple)
+
+BATCH_SIZE = 32
+
+train_dataloader_augmented = DataLoader(dataset=train_data_augmented,
+                                        batch_size=BATCH_SIZE,
+                                        shuffle=True,
+                                        #num_workers=os.cpu_count()
+                                        )
+
+test_dataloader_simple = DataLoader(dataset=test_data_simple,
+                                    batch_size=BATCH_SIZE,
+                                    shuffle=False,
+                                    #num_workers=NUM_WORKERS
+                                    )
+
+#creating a new instance of the model
+torch.manual_seed(42)
+model_1 = TinyVGG(input_shape=3,
+                  hidden_units=10,
+                  output_shape=len(class_names)).to(device=device)
+
+#training the model
+torch.manual_seed(42)
+
+NUM_EPOCHS = 5
+
+loss_func = nn.CrossEntropyLoss()
+
+optimizer = torch.optim.Adam(params=model_1.parameters(),
+                             lr=0.001)
+
+start_time = timer()
+
+model_1_results = epoch_loop_train(model=model_1,
+                                   train_dataloader=train_dataloader_augmented,
+                                   test_dataloader=test_dataloader_simple,
+                                   loss_func=loss_func,
+                                   optimizer=optimizer,
+                                   device=device,
+                                   epochs=NUM_EPOCHS)
+
+end_time = timer()
+
+print(f"Total train time for model_1: {end_time-start_time:.3f} seconds")
+
+print(model_1_results)

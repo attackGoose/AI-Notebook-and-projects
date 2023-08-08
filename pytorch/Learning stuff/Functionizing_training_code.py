@@ -39,9 +39,6 @@ def train_step_multiclass(model: torch.nn.Module,
         train_acc += ((y_pred_label == y).sum().item()/len(y_pred_label)) #original: (y_pred == y).sum().item()/len(y_pred)
         #if the y pred is = to y, we take the total amount of that through sum, then turn it into an item, and device it by the length of y_pred to get the accuracy
 
-        if batch % 400 == 0:
-            print(f"Looked at {batch * len(X)/len(data_loader.dataset)} samples")
-
     #adjust metrics to get the train loss and acc per batch
     train_loss /= len(data_loader)
     train_acc /= len(data_loader)
@@ -77,7 +74,6 @@ def test_step_multiclass(model: torch.nn.Module,
 
         return test_loss, test_acc
     
-
 #combines all the steps above
 def epoch_loop_train(model: torch.nn.Module,
                train_dataloader: DataLoader, #torch.utils.data.DataLoader
