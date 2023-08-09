@@ -2,6 +2,7 @@
 import torch
 from torch import nn
 
+import torchvision
 from torchvision import datasets, transforms
 from torch.utils.data import DataLoader
 
@@ -59,6 +60,8 @@ import random
 from PIL import Image
 
 from torch.utils.data import Dataset
+
+import pandas as pd
 
 image_path_list = list(image_path.glob('*/*/*.jpg'))
 
@@ -236,7 +239,7 @@ def plot_loss_curves(results: Dict[str, List[float]]): #the model takes in a dic
     plt.xlabel("Epochs")
     plt.legend()
 
-    plt.subplot(1, 2, 1)
+    plt.subplot(1, 2, 2)
     plt.plot(num_epochs, accuracy, label="train_acc")
     plt.plot(num_epochs, test_accuracy, label="test_acc")
     plt.title("Accuracy")
@@ -339,3 +342,93 @@ end_time = timer()
 print(f"Total train time for model_1: {end_time-start_time:.3f} seconds")
 
 print(model_1_results)
+
+#plot its loss curves
+plot_loss_curves(results=model_1_results)
+plt.show()
+#model is prob both overfitting and underfitting, for some reason the test acc and loss is extremely weird
+
+
+"""Its always tood to compare your model results to one another to see where the model might need more work, what works, and what doesn't work
+
+ways to compare the modeling experiments to one another: 
+1. hard coding functions to do it for us (using this for now since it involves raw pytorch) (method isn't prefered since when there are too many graphs it gets hard to read)
+2. Pytorch tensorboard: https://pytorch.org/docs/stable/tensorboard.html
+3. weights and biases: https://wandb.ai/site
+4. MLFlow: https://mlflow.org/
+"""
+
+model_0_df = pd.DataFrame(data=model_0_results)
+model_1_df = pd.DataFrame(data=model_1_results)
+
+print(model_0_results)
+
+#setting up a plot
+plt.figure(figsize=(15, 10))
+
+epochs = range(len(model_0_df))
+
+#plotting train loss
+plt.subplot(2, 2, 1)
+plt.plot(epochs, model_0_df["train_loss"], label="Model 0")
+plt.plot(epochs, model_1_df["train_loss"], label="Model 1")
+plt.title("Train Loss")
+plt.xlabel("Epochs")
+plt.legend()
+
+#plotting train acc
+plt.subplot(2, 2, 2)
+plt.plot(epochs, model_0_df["train_acc"], label="Model 0")
+plt.plot(epochs, model_1_df["train_acc"], label="Model 1")
+plt.title("Train Accuracy")
+plt.xlabel("Epochs")
+plt.legend()
+
+#plotting test loss
+plt.subplot(2, 2, 3)
+plt.plot(epochs, model_0_df["test_loss"], label="Model 0")
+plt.plot(epochs, model_1_df["test_loss"], label="Model 1")
+plt.title("Test Loss")
+plt.xlabel("Epochs")
+plt.legend()
+
+#plotting test acc
+plt.subplot(2, 2, 4)
+plt.plot(epochs, model_0_df["test_acc"], label="Model 0")
+plt.plot(epochs, model_1_df["test_acc"], label="Model 1")
+plt.title("Train Accuracy")
+plt.xlabel("Epochs")
+plt.legend()
+
+plt.show()
+
+
+#making a prediction on a single custom image:
+custom_image_path = data_path/"04-pizza-dad.jpeg"
+
+#if it doesn't exist
+if not custom_image_path.is_file():
+    with open(custom_image_path, "wb") as f:
+        #downloading it from github using the raw image link
+        request = requests.get(url="https://raw.githubusercontent.com/mrdbourke/pytorch-deep-learning/main/images/04-pizza-dad.jpeg")
+        print(f"downloading {custom_image_path}")
+        f.write(request.content)
+else:
+    print(f"{custom_image_path} already exists, skipping download")
+
+
+#loading in the imgae with pytorch: making sure the imgae is in the same format as the model it will be trained on: in tensorform, with dtype float32, shape: 63, 64, 3,on device
+#reading the imgae into pytorch using: https://pytorch.org/vision/stable/generated/torchvision.io.read_image.html#torchvision.io.read_image 
+
+#io stands for input output
+custom_image_uint8 = torchvision.io.read_image(str(custom_image_path)) #the type is uint8
+
+#viewing the iage cus y not:
+plt.imshow(custom_image_uint8.permute(1, 2, 0))
+plt.axis(False)
+plt.show()
+
+#getting metadata of the image
+print(f"Custom Image Tensor:\n{custom_image_uint8}\nCustom Image Shape: {custom_image_uint8.shape}\nCustom Image datatype: {custom_image_uint8.dtype}")
+
+# we need to change the type to the same type that the model uses (float32) otherwise its going to return an error
