@@ -418,10 +418,11 @@ else:
 
 
 #loading in the imgae with pytorch: making sure the imgae is in the same format as the model it will be trained on: in tensorform, with dtype float32, shape: 63, 64, 3,on device
-#reading the imgae into pytorch using: https://pytorch.org/vision/stable/generated/torchvision.io.read_image.html#torchvision.io.read_image 
+#reading the image into pytorch using: https://pytorch.org/vision/stable/generated/torchvision.io.read_image.html#torchvision.io.read_image 
 
 #io stands for input output
-custom_image_uint8 = torchvision.io.read_image(str(custom_image_path)) #the type is uint8
+print(custom_image_path)
+custom_image_uint8 = torchvision.io.read_image(str(custom_image_path)) #the type is uint8, its what pytorch reads it in as
 
 #viewing the iage cus y not:
 plt.imshow(custom_image_uint8.permute(1, 2, 0))
@@ -431,4 +432,59 @@ plt.show()
 #getting metadata of the image
 print(f"Custom Image Tensor:\n{custom_image_uint8}\nCustom Image Shape: {custom_image_uint8.shape}\nCustom Image datatype: {custom_image_uint8.dtype}")
 
-# we need to change the type to the same type that the model uses (float32) otherwise its going to return an error
+# trying to make a prediction on the image using the model in float32
+custom_image = custom_image_uint8.type(dtype=torch.float32) / 255 #dividing by 255 because its the standard image format/storing the imgae values in a number between 0-255 in RGB
+#that will scale each number down between 0 and 1
+
+#create a transform to resize the image:
+custom_image_transform = transforms.Compose([
+    transforms.Resize(size=(64, 64))
+])
+
+custom_image_transformed = custom_image_transform(custom_image)
+print(f"Original shape: {custom_image.shape}\nTransformed Shape: {custom_image_transformed.shape}")
+
+plt.imshow(custom_image.permute(1, 2, 0)) #increasing the size of the training image data might help significantly with our accuracy
+plt.show()
+plt.imshow(custom_image_transformed.permute(1, 2, 0))
+plt.show()
+
+#adding a batch dimension to prevent shape errors
+print(custom_image_transformed.unsqueeze(dim=0).shape)
+
+model_1.eval()
+with torch.inference_mode():
+    pred = model_1(custom_image_transformed.unsqueeze(dim=0).to(device))
+    print(pred)
+    #pred = model_1(custom_image_transformed.to(device))
+    #this will error since there's no batch size so right now its 10x169 and 1690x3 shapes
+
+    #pred = model_1(custom_image.to(device))
+    #the image size is 10x756765 in a vector
+
+
+"""
+Steps to make predictions on a custom image:
+
+1. load the image and turn it into a tensor
+2. make sure the image tensor was the same datatype as the model (float32) and the same shape as the data the model was trained on (3, 64, 64) with a batch size (1, 3, 64, 64)
+3. make sure the image tensor was on the same device as the model
+
+this relates back to the 3 most common types of errors in machine learning, mismatched datatypes, data shapes, and devices
+
+making predictions on custom data is possible so long as you format the data into a similar format to the data that the model was trained on
+"""
+
+#converting the raw logits into the prediction probabilities, then to prediction labels
+custom_image_pred_probs = torch.softmax(pred, dim=1) 
+print(custom_image_pred_probs)#our prediction things are poopy
+
+custom_image_pred_labels = torch.argmax(custom_image_pred_probs, dim=1)
+print(custom_image_pred_labels)
+
+print(f"Predicted outcome using model 1: {class_names[custom_image_pred_labels]}")
+
+
+#making a function to do everything above
+def pred_custom_data(model, image, ):
+    pass
