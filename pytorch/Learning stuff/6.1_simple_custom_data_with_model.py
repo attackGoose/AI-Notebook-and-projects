@@ -486,5 +486,43 @@ print(f"Predicted outcome using model 1: {class_names[custom_image_pred_labels]}
 
 
 #making a function to do everything above
-def pred_custom_data(model, image, ):
-    pass
+def pred_custom_data(model: torch.nn.Module, custom_image_path: str, transform = None, class_names: List[str] = None, device: torch.device = device):
+    """makes a prediction on a target imgae with a trained model and plots the image and prediction"""
+
+    #making the prediction
+    custom_image = torchvision.io.read_image(path=str(custom_image_path)).type(dtype=torch.float32) #loading in image
+
+    #divides the custom image values by 255 to get a value between 0 and 1 (each pixel has a color channel value of 0-255)
+    custom_image = custom_image / 255 
+
+    if transform: 
+        custom_image = transform(custom_image) #making sure the size is the same as the model if needed
+
+    model.eval()
+    with torch.inference_mode():
+        # we also need the unsqueeze to add a batch dimension 
+        pred_logit = model(custom_image_transformed.unsqueeze(dim=0).to(device)).to(device)
+        pred_probs = torch.softmax(pred_logit, dim=1)
+        pred_label = pred_probs.argmax(dim=1)
+
+
+    #plotting the prediction
+    plt.figure(figsize=(10, 7))
+    plt.imshow(custom_image.squeeze().permute(1, 2, 0))
+    plt.axis(False)
+    if class_names:
+        title = f"Pred: {class_names[pred_label.cpu()]} | Prob: {pred_probs.max().cpu():.3f}" #puts the title on the cpu just in case since matlotlib likes things on the cpu 
+    else:
+        title = f"Pred {pred_label.cpu()} | Prob: {pred_probs.max().cpu():.3f}"
+
+    plt.title(label=title)
+
+    plt.show()
+
+pred_custom_data(model=model_1,
+                 custom_image_path=custom_image_path,
+                 transform=custom_image_transform,
+                 class_names=class_names,
+                 device=device) 
+
+#timestamp: 1:1:30:52 summary of unit 6, the summaries can be found under main takeaways in the notebook as well
