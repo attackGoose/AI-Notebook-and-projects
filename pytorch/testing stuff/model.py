@@ -2,11 +2,9 @@ import torch
 from torch import nn
 import numpy
 
-
 #model data:
 
-
-class LanguageModel(nn.Module):
+class EncoderLayer(nn.Module):
     def __init__(self):
         super().__init__()
         self.something = nn.TransformerEncoder()

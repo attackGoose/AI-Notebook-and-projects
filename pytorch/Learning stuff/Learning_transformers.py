@@ -92,6 +92,8 @@ class MultiHeadAttention(nn.Module):
         model_dim = 512 #output dimension of the unit
         query_key_value_layer = nn.Linear(input_dim, 3*model_dim) 
 
+        #note that this is an encoder layer
+
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         pass
 """
