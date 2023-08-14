@@ -54,3 +54,44 @@ else:
 train_dir = image_path / "train"
 test_dir = image_path / "test"
 
+from functionizing_creating_dataloaders import create_dataloaders
+
+
+#creating a manualtransform for the pretrained model that matches its training data:
+manual_pretrained_model_transforms = transforms.Compose([
+    transforms.Resize(size=(224, 224)), #this is the size that this model uses
+    transforms.ToTensor(),
+    transforms.Normalize(mean=[0.485, 0.456, 0.406], 
+                         std=[0.229, 0.224, 0.225])
+])
+print(manual_pretrained_model_transforms)
+#applying the manual transform and creating a dataset
+BATCH_SIZE = 32
+
+train_dataloader, test_dataloader, class_names = create_dataloaders(train_dir=train_dir,
+                                                                    test_dir=test_dir,
+                                                                    transforms=manual_pretrained_model_transforms,
+                                                                    batch_size=BATCH_SIZE)
+
+print(f"{train_dataloader}\n{test_dataloader}\n{class_names}")
+
+
+#creating a transform for torchvision.models (auto creation): link for more info on available options on other architectures: https://pytorch.org/vision/main/models.html
+
+#selecting the default model weights (which is usually the most optimal/best):
+weights = torchvision.models.EfficientNet_B0_Weights.DEFAULT #.DEFAULT is the best weights available from pretraining on ImageNet
+
+#accessing the transform associated with the weights
+auto_transforms = weights.transforms()
+print(auto_transforms)
+
+# the benefit of using an auto transform is that you can ensure you're using the same data transformation that the pretrained model used when it was trained, however it can not 
+# be customized 
+
+train_dataloader, test_dataloader, class_names = create_dataloaders(train_dir=train_dir,
+                                                                    test_dir=test_dir,
+                                                                    transforms=auto_transforms,
+                                                                    batch_size=BATCH_SIZE)
+
+
+#getting a pre-trained model: (and customizing it to our specific use case)
