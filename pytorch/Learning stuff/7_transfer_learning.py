@@ -95,3 +95,17 @@ train_dataloader, test_dataloader, class_names = create_dataloaders(train_dir=tr
 
 
 #getting a pre-trained model: (and customizing it to our specific use case)
+
+"""
+in this case, since I'm building a computer vision model for learning this, I'm going to be using torchvision.models (available at https://pytorch.org/vision/stable/models.html#classification)
+
+in the models section, usually, the higher the number in the model name (e.g. efficientnet_b0() -> efficientnet_b1() -> efficientnet_b7()) the better the performance 
+but the larger the model
+while having good performance is beneficial, having a model that's too big means that it won't always fit onto the device we're working with
+understanding the performance v speed v size trade off comes with time and practice
+
+I'm using the efficientnet_bX (where X is a number) to practice but its important to **not get attatched to any one architecture** as they are always changing with new research
+its best to experiment with different architectures to see which one works best for the problem you're working with
+"""
+
+#setup pretrained model:

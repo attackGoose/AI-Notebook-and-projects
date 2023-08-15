@@ -1,4 +1,4 @@
-#resources to use: https://youtube.com/playlist?list=PLTl9hO2Oobd97qfWC40gOSU8C0iu0m2l4
+#resources to use: https://youtube.com/playlist?list=PLTl9hO2Oobd97qfWC40gOSU8C0iu0m2l4 this also includes things on chatgpt
 #btw the stuff isn't in order, they're mostly coding out the theory
 
 import torch
@@ -92,7 +92,7 @@ class MultiHeadAttention(nn.Module):
         model_dim = 512 #output dimension of the unit
         query_key_value_layer = nn.Linear(input_dim, 3*model_dim) 
 
-        #note that this is an encoder layer
+        #note that this is an encoder layer or at least part of one
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         pass
