@@ -17,6 +17,7 @@ import torch
 from torch import nn
 import torchvision
 from torchvision import transforms
+from torchinfo import summary
 
 import matplotlib.pyplot as plt
 
@@ -108,4 +109,31 @@ I'm using the efficientnet_bX (where X is a number) to practice but its importan
 its best to experiment with different architectures to see which one works best for the problem you're working with
 """
 
-#setup pretrained model:
+#setup pretrained model with pretrained weights and sending it to target device: (the pretrained model that I'm using is going to be the efficientnet_b0 model)
+model_weights = torchvision.models.EfficientNet_B0_Weights.DEFAULT #usually default = the best available weights
+model = torchvision.models.efficientnet_b0(weights=weights).to(device=device)
+
+#print(model) #super long
+
+"""
+the efficientnet model uses 3 main sections: 
+
+features - a collection of convolution layers and other various activation layers to learn a base represent of the vision data (layer is often refered to as features or feature
+            extractor)
+
+avgpool = takes the output of the features layer(s) and turns it into a feature vector
+
+classifier = turns the feature vector into a vector with the same dimensionality as the number of required output classes 
+
+#most of these layers have been made in the previous tutorials in the previous CNN files
+"""
+
+#using torchinfo.summary() to summarize the model:
+summary(model=model,
+        input_size=(32, 3, 224, 224),
+        col_names=["input_size", "output_size", "num_params", "trainable"],
+        col_width=20,
+        row_settings=["var_names"]
+) #this shows all of the information on the model as well as if some of the parameters are trainable or not
+
+#changing the output layer to suit our own problem: (since our problem only has 3 output layers as ocmpared to the model's 100)

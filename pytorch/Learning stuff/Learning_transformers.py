@@ -8,7 +8,7 @@ import math
 
 ##For visualizing self-attention in transformers:
 
-#each word will contain these 3 vectors, 
+#each word will contain these 3 vectors, one represents 
 length, dim_key, dim_value = 4, 8, 8
 query_vector = np.random.randn(length, dim_key)
 key_vector = np.random.randn(length, dim_key)
@@ -37,7 +37,8 @@ def softmax(x): #there's a pytorch function for this
 #this way, the attention vector won't incorporate any word that comes after it
 attention = softmax(mask_scaled)
 
-new_vector = np.matmul(attention, value_vector) #these new matrcies should better encapsulate the meaning of a word
+new_vector = np.matmul(attention, value_vector) # these new matrcies should better encapsulate the meaning of a word by taking its meaning and putting it in context
+                                                # of the previous words in the sentence 
 
 
 #putting it all into a function:
