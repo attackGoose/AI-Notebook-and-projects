@@ -10,9 +10,9 @@ import math
 
 #each word will contain these 3 vectors, one represents 
 length, dim_key, dim_value = 4, 8, 8
-query_vector = np.random.randn(length, dim_key)
-key_vector = np.random.randn(length, dim_key)
-value_vector = np.random.randn(length, dim_value)
+query_vector = np.random.randn(length, dim_key) #stores the word itself
+key_vector = np.random.randn(length, dim_key) #stores what values/;means a word can offer/could offer (with no context)
+value_vector = np.random.randn(length, dim_value) #stores what values/meanings the word actually offer (with context)
 
 #initial self-attention matrix
 scaled = np.matmul(query_vector, key_vector.T) / math.sqrt(dim_key)

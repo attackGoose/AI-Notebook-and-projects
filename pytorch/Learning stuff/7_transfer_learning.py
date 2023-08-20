@@ -136,4 +136,28 @@ summary(model=model,
         row_settings=["var_names"]
 ) #this shows all of the information on the model as well as if some of the parameters are trainable or not
 
-#changing the output layer to suit our own problem: (since our problem only has 3 output layers as ocmpared to the model's 100)
+#changing parts of the the base model and output layer to suit our own problem: (since our problem only has 3 output layers as compared to the model's 100)
+
+#freezing all the layers/parameters in the "features" section of the model
+for param in model.features.parameters():
+    param.requires_grad = False #by turning off grad, it becomes untrainable, or "frozen," or at least its what its suppose to do but i can't figure out why it isn't doing it
+
+#adjusting the output layer to fit our needs (since we only have 3 output classes as compared to the model's 1000 classes)
+#the output is controlled by the classifier portion of the model, current classifier consists of Dropout(0.2, inplace=True), Lienar(in_features=1280, out_features-1000, bias=True)
+
+output_shape = len(class_names)
+
+model.classifier = torch.nn.Sequential(
+    torch.nn.Dropout(0.2, inplace=True),
+    torch.nn.Linear(in_features=1280, out_features=output_shape, bias=True)
+).to(device=device)
+
+#getting the summmary of the modified model: 
+summary(model=model,
+        input_size=(32, 3, 224, 224),
+        verbose=0,
+        col_names=["input_size", "output_size", "num_params", "trainable"],
+        col_width=20,
+        row_settings=["var_names"])
+
+#
