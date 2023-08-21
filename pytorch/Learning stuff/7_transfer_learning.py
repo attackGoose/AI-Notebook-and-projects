@@ -44,7 +44,7 @@ else:
     with open(data_path / "pizza_steak_sushi.zip", "wb") as f:
         request = requests.get("https://github.com/mrdbourke/pytorch-deep-learning/raw/main/data/pizza_steak_sushi.zip")
         print("downloading data")
-        f.write(request)
+        f.write(request.content)
 
     #unzip file:
     with zipfile.ZipFile(data_path / "pizza_steak_sushi.zip", "r") as zip_ref:
@@ -56,7 +56,9 @@ train_dir = image_path / "train"
 test_dir = image_path / "test"
 
 from functionizing_creating_dataloaders import create_dataloaders
-
+from Functionizing_training_code import epoch_loop_train
+from timeit import default_timer as timer
+from helper_functions import plot_loss_curves
 
 #creating a manualtransform for the pretrained model that matches its training data:
 manual_pretrained_model_transforms = transforms.Compose([
@@ -128,19 +130,18 @@ classifier = turns the feature vector into a vector with the same dimensionality
 #most of these layers have been made in the previous tutorials in the previous CNN files
 """
 
-#using torchinfo.summary() to summarize the model:
+#using torchinfo.summary() to summarize the model: 
 summary(model=model,
         input_size=(32, 3, 224, 224),
         col_names=["input_size", "output_size", "num_params", "trainable"],
         col_width=20,
-        row_settings=["var_names"]
-) #this shows all of the information on the model as well as if some of the parameters are trainable or not
+        row_settings=["var_names"]) #this shows all of the information on the model as well as if some of the parameters are trainable or not
 
 #changing parts of the the base model and output layer to suit our own problem: (since our problem only has 3 output layers as compared to the model's 100)
 
 #freezing all the layers/parameters in the "features" section of the model
 for param in model.features.parameters():
-    param.requires_grad = False #by turning off grad, it becomes untrainable, or "frozen," or at least its what its suppose to do but i can't figure out why it isn't doing it
+    param.requires_grad = False #by turning off grad, it becomes untrainable, or "frozen"
 
 #adjusting the output layer to fit our needs (since we only have 3 output classes as compared to the model's 1000 classes)
 #the output is controlled by the classifier portion of the model, current classifier consists of Dropout(0.2, inplace=True), Lienar(in_features=1280, out_features-1000, bias=True)
@@ -160,4 +161,26 @@ summary(model=model,
         col_width=20,
         row_settings=["var_names"])
 
-#
+loss_func = torch.nn.CrossEntropyLoss()
+optimizer = torch.optim.Adam(params=model.parameters(),
+                             lr=0.001)
+
+start_time = timer()
+
+#training the new model
+results = epoch_loop_train(model=model,
+                    train_dataloader=train_dataloader,
+                    test_dataloader=test_dataloader,
+                    loss_func=loss_func,
+                    optimizer=optimizer,
+                    device=device,
+                    epochs=5)
+
+end_time = timer()
+
+print(f"Total training time: {(end_time-start_time):.3f} seconds") #idk why my test data is so weird, loss starts low and acc is also low so idk
+
+#evaluating the model via loss curves
+plot_loss_curves(results=results)
+plt.show()
+
