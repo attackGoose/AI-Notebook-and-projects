@@ -184,3 +184,72 @@ print(f"Total training time: {(end_time-start_time):.3f} seconds") #idk why my t
 plot_loss_curves(results=results)
 plt.show()
 
+#i have no idea why my test accuracy is absolutely poop, I think I just need more test data (since the test loss is also at a all time low which is prob why it no learn)
+
+#making predictions on a custom image:
+
+"""
+things to keep in mind:
+
+1. Shape errors: if our images are a different shape to what our model is trained on, we'll get a shape error
+2. Datatype errors: if our images are a different datatype than what our model uses (i.e. float32, int8, or float64 just to make a few) we'll get an error
+3. Device errors: if our images are on a different device than our model then we'll get a device error
+4. Transformation mistakes: if our model is trained on images that have been transformed in a certain way, if we try to make predictions in another way, then the predictions might
+    be off
+"""
+from typing import Tuple, Dict, List
+from PIL import Image
+
+def pred_and_plot_image(model: torch.nn.Module,
+                        class_names: List[str],
+                        image_path: str,
+                        image_size: Tuple[int, int] = (224, 224),
+                        transform: torchvision.transforms = None,
+                        device: torch.device = device):
+    img = Image.open(image_path)
+    
+    #create transform for image if it doesn't exist
+    if transform is not None:
+        image_transform = transform
+    else:
+        image_transform = transforms.Compose([
+            transforms.Resize(image_size),
+            transforms.ToTensor(),
+            transforms.Normalize(mean=[0.485, 0.456, 0.406],
+                                 std=[0.229, 0.224, 0.225])
+        ])
+    
+    #predicting on the image:
+    model.to(device=device)
+
+    model.eval()
+    with torch.inference_mode():
+        transformed_image = image_transform(img).unsqueeze(dim=0) #adding in extra dimension
+
+        target_image_pred = model(transformed_image.to(device))
+    
+    target_image_pred_probs = torch.softmax(target_image_pred, dim=1)
+
+    target_image_label = torch.argmax(target_image_pred_probs, dim=1)
+    
+    #plot the image
+    plt.figure(figsize=(10, 10))
+    plt.imshow(img)
+    plt.title(f"Pred: {class_names[target_image_label]} | Prob: {target_image_pred_probs:.3f}")
+    plt.axis(False)
+
+import random
+
+num_img_to_plot = 3
+test_image_path_list = list(Path(test_dir).glob("*/*.jpg"))
+test_image_sample = random.sample(population=test_image_path_list,
+                                  k=num_img_to_plot)
+
+for image in test_image_sample:
+    pred_and_plot_image(model=model,
+                        class_names=class_names,
+                        image_path=image_path,
+                        transform=weights.transforms(),
+                        image_size=(224, 224))
+    
+    plt.show()
