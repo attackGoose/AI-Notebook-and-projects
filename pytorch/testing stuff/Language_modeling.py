@@ -8,7 +8,8 @@
 
 ## im also thinking that by making a chatbot, i can just have it build off of what we tell it, like "hey how are you" it can build off of that in a conversation like way like
 # "I'm doing fine, just going to go for a walk somewhere"
-# so I'm guessing that the training data that we give it is going to be a very conversation like thingy
+# so I'm guessing that the training data that we give it is going to be a very conversation like thingy, its going to be like a sentence completion that can remember 
+# previous inputs
 # this method is primarily like a sentence/phrase completion which I feel like is still good as a chat bot and will need to be trained on text data that's very conversation like
 
 

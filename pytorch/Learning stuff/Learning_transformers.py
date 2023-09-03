@@ -10,7 +10,7 @@ import math
 
 #each word will contain these 3 vectors, one represents 
 length, dim_key, dim_value = 4, 8, 8
-query_vector = np.random.randn(length, dim_key) #stores the word itself
+query_vector = np.random.randn(length, dim_key) #stores what I'm looking for in a word
 key_vector = np.random.randn(length, dim_key) #stores what values/;means a word can offer/could offer (with no context)
 value_vector = np.random.randn(length, dim_value) #stores what values/meanings the word actually offer (with context)
 
