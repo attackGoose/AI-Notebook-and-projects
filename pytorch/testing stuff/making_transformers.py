@@ -38,3 +38,4 @@ class SelfAttention(nn.Module):
         query = query.reshape(N, key_len, self.heads, self.head_dim)
         keys = keys.reshape(N, key_len, self.heads, self.head_dim)
 
+        
